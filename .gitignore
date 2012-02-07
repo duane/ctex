@@ -5,3 +5,4 @@ Makefile
 CTestTestfile.cmake
 cmake_install.cmake
 CMakeFiles
+Testing
