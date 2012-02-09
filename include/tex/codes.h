@@ -3,7 +3,7 @@
 
 namespace tex {
 // cat codes
-const enum {
+enum {
   CC_ESCAPE = 0,
   CC_RELAX = 0,
   CC_LBRACE = 1,
@@ -26,9 +26,9 @@ const enum {
   CC_COMMENT = 14,
   CC_END_MATCH = 14,
   CC_STOP = 14,
-  CC_INVALID_CHAR = 15,
+  CC_INVALID = 15,
   CC_DELIM_NUM = 15,
-}
+};
 
 }
 
