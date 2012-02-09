@@ -12,6 +12,7 @@ class ByteBuffer {
     // disallow copy/assign
     ByteBuffer(const ByteBuffer&);
     ByteBuffer &operator=(const ByteBuffer&);
+    ByteBuffer() : rawBuffer(NULL), bufferSize(0) {}
 
     uint8_t *rawBuffer;
     uint64_t bufferSize;
@@ -28,12 +29,11 @@ class ByteBuffer {
     }
 
   public:
-    ByteBuffer() : rawBuffer(NULL), bufferSize(0) {}
 
     static int initFromFile(const char *path, UniquePtr<ByteBuffer> &result);
-    int getByte(size_t offset, uint8_t &byte);
-    int getBytes(size_t offset, size_t size, uint8_t *bytes);
-    inline uint64_t size() {return bufferSize;}
+    int getByte(size_t offset, uint8_t &byte) const;
+    int getBytes(size_t offset, size_t size, uint8_t *bytes) const;
+    inline uint64_t size() const {return bufferSize;}
 };
 
 }  // namespace dviview

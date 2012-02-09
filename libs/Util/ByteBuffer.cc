@@ -40,14 +40,14 @@ int ByteBuffer::initFromFile(const char *path, UniquePtr<ByteBuffer> &result) {
   return 0;
 }
 
-int ByteBuffer::getByte(size_t offset, uint8_t &byte) {
+int ByteBuffer::getByte(size_t offset, uint8_t &byte) const {
   if (offset >= bufferSize)
     return -1;
   byte = rawBuffer[offset];
   return 0;
 }
 
-int ByteBuffer::getBytes(size_t offset, size_t size, uint8_t *bytes) {
+int ByteBuffer::getBytes(size_t offset, size_t size, uint8_t *bytes) const {
   assert(bytes && "Got NULL pointer reference to result bytes.");
   if (offset + size > bufferSize)
     return -1;
