@@ -6,3 +6,10 @@ CTestTestfile.cmake
 cmake_install.cmake
 CMakeFiles
 Testing
+
+# object files
+*.a
+
+# gtest
+
+test/gtest
