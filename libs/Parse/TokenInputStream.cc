@@ -1,11 +1,11 @@
 #include <IO/CodecOutputStream.h>
-#include <Parse/CommandInputStream.h>
+#include <Parse/TokenInputStream.h>
 #include <Unicode/Codecs/ASCII.h>
 
 using namespace tex;
 
-int CommandInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<CommandInputStream> &result) {
-  CommandInputStream *stream = new CommandInputStream();
+int TokenInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result) {
+  TokenInputStream *stream = new TokenInputStream();
   int status = CodecInputStream::init_from_file(path, codec, stream->input_stream);
   if (status)
     return status;
@@ -32,7 +32,7 @@ inline bool is_hex(unichar uc) {
 }
 
 // Handles conversions from hex characters, per TeX@252
-int CommandInputStream::read_translated_char(State &state, unichar &uc) {
+int TokenInputStream::read_translated_char(State &state, unichar &uc) {
   // first, read the raw character.
   unichar raw, raw2;
   if (input_stream->consume_char(raw))
@@ -72,7 +72,7 @@ int CommandInputStream::read_translated_char(State &state, unichar &uc) {
 }
 
 // converts line feeds to carriage returns.
-int CommandInputStream::read_converted_char(State &state, unichar &uc) {
+int TokenInputStream::read_converted_char(State &state, unichar &uc) {
   if (read_translated_char(state, uc))
     return -1;
   if (uc == '\n')
@@ -80,7 +80,7 @@ int CommandInputStream::read_converted_char(State &state, unichar &uc) {
   return 0;
 }
 
-Diag *CommandInputStream::consume_command(State &state, uint8_t &result) {
+Diag *TokenInputStream::consume_token(State &state, Token &result) {
   assert(input_stream && "Attempted to read from a NULL stream.");
   
   return NULL;

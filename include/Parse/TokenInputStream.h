@@ -1,20 +1,21 @@
-#ifndef __INCLUDE_PARSE_COMMANDINPUTSTREAM_H__
-#define __INCLUDE_PARSE_COMMANDINPUTSTREAM_H__
+#ifndef __INCLUDE_PARSE_TokenINPUTSTREAM_H__
+#define __INCLUDE_PARSE_TokenINPUTSTREAM_H__
 
 
 #include <Diag/Diag.h>
 #include <IO/CodecInputStream.h>
 #include <State/State.h>
+#include <Parse/Token.h>
 #include <Util/UniquePtr.h>
 
 namespace tex {
-class CommandInputStream {
+class TokenInputStream {
 private:
   // Disallow copy/assign
-  CommandInputStream(const CommandInputStream&);
-  CommandInputStream &operator=(const CommandInputStream&);
+  TokenInputStream(const TokenInputStream&);
+  TokenInputStream &operator=(const TokenInputStream&);
 
-  CommandInputStream() : input_stream() {}  
+  TokenInputStream() : input_stream() {}  
 private:
   // Nothing but a wrapper around a CodecInputStream.
   UniquePtr<CodecInputStream> input_stream;
@@ -25,9 +26,9 @@ private:
   int read_converted_char(State &state, unichar &uc);
 
 public:
-  Diag *consume_command(State &state, uint8_t &result);
+  Diag *consume_token(State &state, Token &result);
   
-  static int init_from_file(const char *path, const Codec *codec, UniquePtr<CommandInputStream> &result);
+  static int init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result);
 };
 }
 

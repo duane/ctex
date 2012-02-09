@@ -1,1 +1,1 @@
-add_library(Parse CommandInputStream.cc)
+add_library(Parse TokenInputStream.cc)
