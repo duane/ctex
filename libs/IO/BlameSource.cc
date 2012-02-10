@@ -5,16 +5,17 @@ using namespace tex;
 
 BlameSource::BlameSource(const char *input, uint32_t lineStart, uint32_t lineEnd, uint32_t colStart, uint32_t colEnd)
 {
-  line_start = lineStart;
-  line_end = lineEnd;
-  col_start = colStart;
-  col_end = colEnd;
+  line_start = lineStart + 1;
+  line_end = lineEnd + 1;
+  col_start = colStart + 1;
+  col_end = colEnd + 1;
+  input_name = input;
   
   assert(line_start <= line_end && "Start line exceeds end line.");
   assert(col_start <= col_end && "Start col exceeds end col.");
   assert(input && "Got passed null input string.");
   
-  std::string string = std::string(inputName, 256); // copy up to 256 chars from input name to string.
+  std::string string = std::string(input_name); // copy up to 256 chars from input name to string.
 
   string += std::string(":");
 

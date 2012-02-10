@@ -12,12 +12,12 @@ namespace tex {
 
 class BlameSource {
 private:
-  const char *inputName;
+  const char *input_name;
   uint32_t line_start, line_end;
   uint32_t col_start, col_end;
   char *str;
 public:
-  BlameSource() : inputName(NULL), line_start(0), line_end(0), col_start(0), col_end(0), str(NULL) {}
+  BlameSource() : input_name(NULL), line_start(0), line_end(0), col_start(0), col_end(0), str(NULL) {}
   BlameSource(const char *input, uint32_t lineStart, uint32_t lineEnd, uint32_t colStart, uint32_t colEnd);
   char *string() const {
     assert(str && "Attempted to return NULL string.");
