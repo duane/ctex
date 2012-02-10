@@ -1,10 +1,13 @@
 #ifndef __INCLUDE_PARSE_TOKEN_H__
 #define __INCLUDE_PARSE_TOKEN_H__
 
+#include <State/CommandSequence.h>
+
 namespace tex {
 
 typedef struct {
-  uint32_t cmd;
+  CommandCode cmd;
+  size_t line, col, extent;
   union {
     unichar uc;
     UString *string;
