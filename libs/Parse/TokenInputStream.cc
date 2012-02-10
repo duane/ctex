@@ -111,6 +111,10 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
   
   CommandCode ccode = state.catcode(uc);
   switch (ccode) {
+    case CC_IGNORE: {
+      // do nothing. Tail call into the function to get next token.
+      return consume_token(state, result);
+    }
     case CC_ESCAPE: {
       UString *string = new UString();
       if (read_command_sequence(state, *string)) {
