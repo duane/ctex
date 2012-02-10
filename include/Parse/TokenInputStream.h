@@ -15,15 +15,21 @@ private:
   TokenInputStream(const TokenInputStream&);
   TokenInputStream &operator=(const TokenInputStream&);
 
-  TokenInputStream() : input_stream() {}  
+  TokenInputStream() : input_stream(), parser_state(STATE_NEWLINE) {}
 private:
-  // Nothing but a wrapper around a CodecInputStream.
   UniquePtr<CodecInputStream> input_stream;
+
+  // Parser state emulates original tex parser state.
+  unsigned parser_state;
+  enum {
+    STATE_NEWLINE,
+    STATE_SKIP_SPACES,
+    STATE_MIDLINE,
+  };
 
 private:
   // internal parsing methods
   int read_translated_char(State &state, unichar &uc);
-  int read_converted_char(State &state, unichar &uc);
   int read_command_sequence(State &state, UString &result);
 
 public:

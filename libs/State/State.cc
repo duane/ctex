@@ -22,10 +22,11 @@ State::State() {
   
   // now misc. initializations.
   ccode[0x00] = CC_IGNORE;
-  ccode[0x32] = CC_SPACER; // ' ' 
+  ccode[0x20] = CC_SPACER; // ' ' 
   ccode[0x5C] = CC_ESCAPE; // '\\'
   ccode[0x25] = CC_COMMENT; // '%'
   ccode[0x7F] = CC_INVALID;
+  ccode[0x0A] = CC_CAR_RET; // '\n'; technically deviates from tex.
   ccode[0x0D] = CC_CAR_RET; // '\r'
 }
 

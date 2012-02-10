@@ -71,15 +71,6 @@ int TokenInputStream::read_translated_char(State &state, unichar &uc) {
   return 0;
 }
 
-// converts line feeds to carriage returns.
-int TokenInputStream::read_converted_char(State &state, unichar &uc) {
-  if (read_translated_char(state, uc))
-    return -1;
-  if (uc == '\n')
-    uc = '\r';
-  return 0;
-}
-
 int TokenInputStream::read_command_sequence(State &state, UString &result) {
   MutableUString string = MutableUString();
   unichar uc;
@@ -99,18 +90,18 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
   assert(input_stream && "Attempted to read from a NULL stream.");
   
   // first, record line/col of at start of token.
-  size_t line = input_stream->line();
-  size_t col = input_stream->col();
+  result.line = input_stream->line();
+  result.col = input_stream->col();
+  result.extent = 1;
   const char *name = input_stream->name();
   
-  unichar uc;
-  if (read_converted_char(state, uc)) {
+  if (read_translated_char(state, result.uc)) {
     result.cmd = CC_EOF;  
     return NULL;
   }
   
-  CommandCode ccode = state.catcode(uc);
-  switch (ccode) {
+  result.cmd = state.catcode(result.uc);
+  switch (result.cmd) {
     case CC_IGNORE: {
       // do nothing. Tail call into the function to get next token.
       return consume_token(state, result);
@@ -124,25 +115,51 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
       }
       result.cmd = CC_CS_STRING;
       result.string = string;
-      result.line = line;
-      result.col = col;
-      result.extent = input_stream->col() - col + 1;
+      result.extent = input_stream->col() - result.col + 1;
       return NULL;
     }
     case CC_LETTER:
-    case CC_OTHER_CHAR:
-    case CC_CAR_RET:
+    case CC_OTHER_CHAR: {
+      parser_state = STATE_MIDLINE;
+      return NULL;
+    }
     case CC_SPACER: {
-      result.cmd = ccode;
-      result.uc = uc;
-      result.line = line;
-      result.col = col;
-      result.extent = 1;
+      if (parser_state == STATE_SKIP_SPACES || parser_state == STATE_NEWLINE) {
+        return consume_token(state, result);
+      }
+      parser_state = STATE_SKIP_SPACES;
+      return NULL;
+    }
+    case CC_CAR_RET: {
+      uint32_t p_state = parser_state;
+      parser_state = STATE_NEWLINE;
+      if (p_state == STATE_NEWLINE) {
+        result.cmd = CC_CS_STRING;
+        result.string = UString::FromCString("par");
+        return NULL;
+      } else if (p_state == STATE_SKIP_SPACES) {
+        return consume_token(state, result);
+      } else if (p_state == STATE_MIDLINE) {
+        result.cmd = CC_SPACER;
+        result.uc = ' ';
+        return NULL;
+      }
+    }
+    case CC_COMMENT: {
+      // eat up characters until we run across a newline or EOF.
+      parser_state = STATE_NEWLINE;
+      unichar uc;
+      while (!input_stream->consume_char(uc)) {
+        if (state.catcode(uc) == CC_CAR_RET) // success!
+          return consume_token(state, result);
+      }
+      // we've reached EOF.
+      result.cmd = CC_EOF;
       return NULL;
     }
     case CC_INVALID:
     default: {
-      return new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, line, line, col, col));
+      return new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, result.line, result.line, result.col, result.col));
     }
   }
   assert(false && "Reached unreachable code! Please fix.");
