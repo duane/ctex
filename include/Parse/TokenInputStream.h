@@ -24,6 +24,7 @@ private:
   // internal parsing methods
   int read_translated_char(State &state, unichar &uc);
   int read_converted_char(State &state, unichar &uc);
+  int read_command_sequence(State &state, UString &result);
 
 public:
   Diag *consume_token(State &state, Token &result);

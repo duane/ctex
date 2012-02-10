@@ -80,8 +80,67 @@ int TokenInputStream::read_converted_char(State &state, unichar &uc) {
   return 0;
 }
 
+int TokenInputStream::read_command_sequence(State &state, UString &result) {
+  MutableUString string = MutableUString();
+  unichar uc;
+  while (!input_stream->peek_char(uc)) {
+    if (state.catcode(uc) == CC_LETTER) {
+      input_stream->consume_char(uc);
+      string.add(uc);
+    } else {
+      break;
+    }
+  }
+  result = string;
+  return 0;
+}
+
 Diag *TokenInputStream::consume_token(State &state, Token &result) {
   assert(input_stream && "Attempted to read from a NULL stream.");
   
+  // first, record line/col of at start of token.
+  size_t line = input_stream->line();
+  size_t col = input_stream->col();
+  const char *name = input_stream->name();
+  
+  unichar uc;
+  if (read_converted_char(state, uc)) {
+    result.cmd = CC_EOF;  
+    return NULL;
+  }
+  
+  CommandCode ccode = state.catcode(uc);
+  switch (ccode) {
+    case CC_ESCAPE: {
+      UString *string = new UString();
+      if (read_command_sequence(state, *string)) {
+        size_t cur_line = input_stream->line();
+        size_t cur_col = input_stream->col();
+        return new BlameSourceDiag("Error parsing command sequence.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, cur_line, cur_line, cur_col, cur_col));
+      }
+      result.cmd = CC_CS_STRING;
+      result.string = string;
+      result.line = line;
+      result.col = col;
+      result.extent = input_stream->col() - col + 1;
+      return NULL;
+    }
+    case CC_LETTER:
+    case CC_OTHER_CHAR:
+    case CC_CAR_RET:
+    case CC_SPACER: {
+      result.cmd = ccode;
+      result.uc = uc;
+      result.line = line;
+      result.col = col;
+      result.extent = 1;
+      return NULL;
+    }
+    case CC_INVALID:
+    default: {
+      return new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, line, line, col, col));
+    }
+  }
+  assert(false && "Reached unreachable code! Please fix.");
   return NULL;
 }
