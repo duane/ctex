@@ -1,1 +1,1 @@
-add_library(Unicode Codec.cc)
+add_library(Unicode UString.cc Codec.cc)

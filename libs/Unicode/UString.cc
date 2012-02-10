@@ -1,3 +1,4 @@
+#include <Unicode/Codecs/ASCII.h>
 #include <Unicode/UString.h>
 
 using namespace tex;
