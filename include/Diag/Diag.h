@@ -9,6 +9,7 @@ enum {
   DIAG_OK = 0,
   DIAG_FILE_OPEN_ERR,
   DIAG_FILE_WRITE_ERR,
+  DIAG_PARSE_ERR,
 };
 
 class Diag {
@@ -72,7 +73,7 @@ public:
   }
   
   void print();
-  BlameSourceDiag(const char *msg, int err, BlameSource &diag_source, BlameSource &input_source);
+  BlameSourceDiag(const char *msg, int err, BlameSource diag_source, BlameSource input_source);
 };
 
 class OKDiag : public Diag {

@@ -25,7 +25,7 @@ void GenericDiag::print(void) {
 }
 
 
-BlameSourceDiag::BlameSourceDiag(const char *msg, int error, BlameSource &generationSource, BlameSource &errorSource) {
+BlameSourceDiag::BlameSourceDiag(const char *msg, int error, BlameSource generationSource, BlameSource errorSource) {
   assert(msg && "Got passed null diagnostic message.");
 
   message = msg;
@@ -46,7 +46,7 @@ BlameSourceDiag::BlameSourceDiag(const char *msg, int error, BlameSource &genera
 }
 
 void BlameSourceDiag::print() {
-  puts(message);
+  puts(str);
 }
 
 void OKDiag::print() { 
