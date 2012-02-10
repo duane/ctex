@@ -11,6 +11,7 @@ int CodecInputStream::init_from_file(const char *path, const Codec *codec, Uniqu
   CodecInputStream *stream = new CodecInputStream();
   stream->codec = codec;
   stream->buf.reset(buf.take()); // copy the pointer safely.
+  stream->stream_name = path;
   result.reset(stream);
   return 0;
 }
@@ -31,6 +32,14 @@ int CodecInputStream::peek_char(unichar &read) {
 int CodecInputStream::consume_char(unichar &read) {
   if(peek_char(read))
     return -1;
+  
+  if (read == '\n' || read == '\n') {
+    cur_line += 1;
+    cur_col = 0;
+  } else {
+    cur_col += 1;
+  }
+  
   index += peek.length;
   peeked = false;
   return 0;
