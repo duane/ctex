@@ -33,7 +33,7 @@ int CodecInputStream::consume_char(unichar &read) {
   if(peek_char(read))
     return -1;
   
-  if (read == '\n' || read == '\n') {
+  if (read == '\n' || read == '\r') {
     cur_line += 1;
     cur_col = 0;
   } else {
