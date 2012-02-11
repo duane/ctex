@@ -68,3 +68,16 @@ CommandSequence *State::get(UString &string) {
     return &entry->cs;
   return NULL;
 }
+
+State::~State() {
+  // free the hash table.
+  for (size_t i = 0; i < cs_size; i++) {
+    CommandSequenceEntry *entry = cs_table[i];
+    while (entry) {
+      CommandSequenceEntry *next = entry->next;
+      delete entry;
+      entry = next;
+    }
+  }
+  delete cs_table;
+}

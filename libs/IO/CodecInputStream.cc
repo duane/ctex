@@ -5,7 +5,7 @@ using namespace tex;
 int CodecInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result) {
   assert(codec && "Was passed a NULL codec!");
   UniquePtr<ByteBuffer> buf;
-  if (ByteBuffer::initFromFile(path, buf)) {
+  if (ByteBuffer::init_from_file(path, buf)) {
     return -1;
   }
   CodecInputStream *stream = new CodecInputStream();

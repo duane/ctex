@@ -48,6 +48,3 @@ BlameSourceDiag::BlameSourceDiag(const char *msg, int error, BlameSource generat
 void BlameSourceDiag::print() {
   puts(str);
 }
-
-void OKDiag::print() { 
-}

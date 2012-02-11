@@ -1,14 +1,15 @@
 #include <Util/ByteBuffer.h>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <sys/stat.h>
-#include <assert.h>
 
 using namespace tex;
 
-int ByteBuffer::initFromFile(const char *path, UniquePtr<ByteBuffer> &result) {
+int ByteBuffer::init_from_file(const char *path, UniquePtr<ByteBuffer> &result) {
   ByteBuffer *buf = new ByteBuffer();
   FILE *file = fopen(path, "r");
   if (!file)
@@ -20,42 +21,35 @@ int ByteBuffer::initFromFile(const char *path, UniquePtr<ByteBuffer> &result) {
      return -1;
   size_t fileSize = fileStat.st_size;
   
-  uint8_t *rawBuffer = new uint8_t[fileSize];
-  if (!rawBuffer)
+  uint8_t *raw_buffer = new uint8_t[fileSize];
+  if (!raw_buffer)
     return -1;
 
-  if (fread(rawBuffer, 1, fileSize, file) != fileSize) {
-    delete rawBuffer;
+  if (fread(raw_buffer, 1, fileSize, file) != fileSize) {
+    delete raw_buffer;
     return -1;
   }
 
   if(fclose(file)) {
-    delete rawBuffer;
+    delete raw_buffer;
     return -1;
   }
 
-  buf->rawBuffer = rawBuffer;
-  buf->bufferSize = fileSize;
+  buf->raw_buffer = raw_buffer;
+  buf->buffer_size = fileSize;
   result.reset(buf);
   return 0;
 }
 
-int ByteBuffer::getByte(size_t offset, uint8_t &byte) const {
-  if (offset >= bufferSize)
-    return -1;
-  byte = rawBuffer[offset];
-  return 0;
+uint8_t ByteBuffer::get(size_t offset) const {
+  assert(offset < buffer_size && "Access byte outside bounds of buffer.");
+  return raw_buffer[offset];
 }
 
-int ByteBuffer::getBytes(size_t offset, size_t size, uint8_t *bytes) const {
+void ByteBuffer::get_bytes(size_t offset, size_t size, uint8_t *bytes) const {
   assert(bytes && "Got NULL pointer reference to result bytes.");
-  if (offset + size > bufferSize)
-    return -1;
-
-  for (size_t index = 0; index < size; index++) {
-    size_t indexPrime = offset + index;
-    if (getByte(indexPrime, bytes[index]))
-      return -1;
-  }
-  return 0;
+  assert(size && "Trying to copy zero bytes.");
+  assert(offset + size <= buffer_size && "Attempted to copy bytes that exceed the bounds of the buffer.");
+  assert(bytes + size <= raw_buffer || raw_buffer + buffer_size <= bytes && "Aliased pointers.");
+  memcpy(bytes, raw_buffer + offset, size);
 }

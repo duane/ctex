@@ -5,10 +5,14 @@
 
 namespace tex {
 
+/** A simple typedef to allow easy changing of CommandCodes at a later point. */
 typedef uint32_t CommandCode;
 
+/** Used to store command sequences; e.g. "\end", "\par" */
 typedef struct {
+  /** The name of the command sequence. */
   UString string;
+  /** The command code classifying the command sequence. */
   CommandCode cs;
 } CommandSequence;
 

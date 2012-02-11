@@ -16,20 +16,11 @@
 
 namespace tex {
 
+/** A Unicode codepoint. */
 typedef uint32_t unichar;
+
+/** The character used to represent errors in encoding/decoding. */
 const unichar kBadUnichar = 0xFFF4;  // replacement character, used to indicate errors in the bytestreams.
-
-static inline bool isLetter(unichar uchar) {
-    return (uchar >= 'A' && uchar <= 'Z') || (uchar >= 'a' && uchar <= 'z');
-}
-
-static inline bool isDigit(unichar uchar) {
-    return (uchar >= '0' && uchar <= '9');
-}
-
-static inline bool isWhite(unichar uchar) {
-    return (uchar == 0x20) || (uchar == 0x9) || (uchar == 0xd) || (uchar == 0xa);
-}
 
 }  // namespace tex
 

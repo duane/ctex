@@ -33,8 +33,21 @@ private:
   int read_command_sequence(State &state, UString &result);
 
 public:
+  /** 
+   * Parses the file and produces tokens.
+   * @param state The state of the tex file.
+   * @param result Where the resulting token is stored. EOF is indicated by returning a token with the cmd type of CC_EOF
+   * @return NULL on success, non-NULL diagnostic on error.
+   */
   Diag *consume_token(State &state, Token &result);
   
+  /**
+   * Initializes the stream from a  file.
+   * @param path A constant C-String indicating the location of the file.
+   * @param codec The codec used to decode the file.
+   * @param result Where the resulting TokenInputStream is stored.
+   * @return Zero on success, non-zero on failure.
+   */
   static int init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result);
 };
 }
