@@ -13,7 +13,7 @@ typedef struct {
   /** The name of the command sequence. */
   UString string;
   /** The command code classifying the command sequence. */
-  CommandCode cs;
+  CommandCode cmd;
 } CommandSequence;
 
 }

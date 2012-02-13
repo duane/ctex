@@ -72,7 +72,7 @@ int TokenInputStream::read_translated_char(State &state, unichar &uc) {
 }
 
 int TokenInputStream::read_command_sequence(State &state, UString &result) {
-  MutableUString string = MutableUString();
+  MutableUString string;
   unichar uc;
   while (!input_stream->peek_char(uc)) {
     if (state.catcode(uc) == CC_LETTER) {

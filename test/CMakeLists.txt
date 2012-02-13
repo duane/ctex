@@ -17,5 +17,6 @@ macro(add_gtest TEST_NAME)
 endmacro(add_gtest)
 
 add_subdirectory(IO)
+add_subdirectory(State)
 add_subdirectory(Util)
 add_subdirectory(Unicode)

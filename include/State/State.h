@@ -53,10 +53,10 @@ public:
   }
 
   /** Initializes the state of the tex program to its default state. */
-  State();
+  State(void);
   
   /** Frees the internal hash table. */
-  ~State();
+  ~State(void);
 
   /**
    * Sets or adds a command sequence to the hash table.
@@ -70,6 +70,11 @@ public:
    * @return The CommandSequence found in the table, or NULL if nothing was found.
    */
   CommandSequence *get(UString &string);
+  
+  /** Returns the number of command sequences currently in the table. */
+  uint32_t entries(void) const {
+    return cs_entries;
+  }
 };
 
 }

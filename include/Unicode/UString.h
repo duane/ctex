@@ -28,6 +28,7 @@ namespace tex {
  */
 class UString {
 public:
+  
   /**
    * The default initializer returns an empty string and allocates nothing.
    */
@@ -54,6 +55,29 @@ public:
    *  @see ASCIICodec
    */
    UString(const char *cstr);
+  
+  /** Copy/assign operator, newly allocates and copies data. */
+  UString &operator=(const UString &other) {
+    assert(this != &other && "Attempted to copy string to itself.");
+
+    if (raw)
+      delete raw;
+    
+    allocated = length = other.get_length();
+    raw = new unichar[allocated];
+    memcpy(raw, other.get_raw(), allocated * sizeof(unichar));
+    dirty_hash = true;
+    
+    return *this;
+  }
+  
+  /** Copy constructor. */
+  UString(const UString &other) {
+    allocated = length = other.get_length();
+    raw = new unichar[allocated];
+    memcpy(raw, other.get_raw(), allocated * sizeof(unichar));
+    dirty_hash = true;
+  }
   
   /** The deconstructor frees allocated memory. */
   ~UString() {

@@ -41,6 +41,7 @@ CommandSequenceEntry *State::find_cs(UString &string, CommandSequenceEntry ***re
     }
     prev = &entry->next;
   }
+  *referenced_by = prev;
   return NULL;
 }
 

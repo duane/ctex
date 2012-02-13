@@ -4,7 +4,7 @@
 using namespace tex;
 
 TEST(MutableUStringTest, EmptyInit) {
-  MutableUString string = MutableUString();
+  MutableUString string;
   ASSERT_EQ(string.get_length(), 0u);
   ASSERT_GT(string.get_allocated(), 0u);
 }
@@ -19,7 +19,7 @@ TEST(MutableUStringTest, UStringCopy) {
 }
 
 TEST(MutableUStringTest, Add) {
-  MutableUString string = MutableUString();
+  MutableUString string;
   ASSERT_EQ(string.get_length(), 0u);
   string.add((unichar)'Q');
   ASSERT_EQ(string.get_length(), 1u);
@@ -27,7 +27,7 @@ TEST(MutableUStringTest, Add) {
 }
 
 TEST(MutableUStringTest, Set) {
-  MutableUString string = MutableUString();
+  MutableUString string;
   string.add((unichar)'Q');
   ASSERT_EQ(string.get_length(), 1u);
   string.set(0, (unichar)'X');
