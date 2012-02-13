@@ -6,7 +6,7 @@ Diag *CodecInputStream::init_from_file(const char *path, const Codec *codec, Uni
   assert(codec && "Was passed a NULL codec!");
   UniquePtr<ByteBuffer> buf;
   Diag *diag;
-  if (!(diag = ByteBuffer::init_from_file(path, buf)))
+  if ((diag = ByteBuffer::init_from_file(path, buf)))
     return diag;
   
   CodecInputStream *stream = new CodecInputStream();
