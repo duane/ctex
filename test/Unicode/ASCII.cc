@@ -17,7 +17,7 @@ TEST(ASCIITest, SemiExhaustiveEncode) {
   ASSERT_EQ(ec.encoded[1], 0XF4);
 }
 
-TEST(ASCIITEST, SemiExhaustiveDecode) {
+TEST(ASCIITest, SemiExhaustiveDecode) {
   ASCIICodec codec;
   DecodedCharacter dc;
   for (uint8_t ascii = 0; ascii < 128; ascii++) {

@@ -13,6 +13,5 @@ endif(DOXYGEN_FOUND)
 add_subdirectory(libs)
 add_subdirectory(tools)
 
-enable_testing()
 add_subdirectory(test EXCLUDE_FROM_ALL)
 

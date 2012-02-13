@@ -51,10 +51,9 @@ public:
   /**
    *  A simple utility method that allocates and returns a new UString after decoding from ASCII.
    *  @param cstr The C-string to be decoded and copied.
-   *  @return Returns NULL on failure, or a newly allocated UString on success.
    *  @see ASCIICodec
    */
-  static UString *FromCString(const char *cstr);
+   UString(const char *cstr);
   
   /** The deconstructor frees allocated memory. */
   ~UString() {
@@ -170,11 +169,11 @@ public:
   }
   
   /** The copy constructor; copies as expected. */
-  explicit MutableUString(UString *string) {
+  explicit MutableUString(UString &string) {
     // copy the data
-    allocated = length = string->getLength();
+    allocated = length = string.getLength();
     raw = new unichar[allocated];
-    memcpy(raw, string->getRaw(), allocated * sizeof(unichar));
+    memcpy(raw, string.getRaw(), allocated * sizeof(unichar));
     dirty_hash = true;
   }
   
