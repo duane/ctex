@@ -1,0 +1,4 @@
+add_gtest(Parse_test TokenInputStream.cc)
+target_link_libraries(Parse_test Diag IO State Parse Unicode Util)
+add_dependencies(Parse_test IO_test State_test Util_test Unicode_test)
+add_dependencies(check_Parse_test check_IO_test check_State_test check_Util_test check_Unicode_test)

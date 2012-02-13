@@ -7,7 +7,7 @@ using namespace tex;
 Diag *TokenInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result) {
   TokenInputStream *stream = new TokenInputStream();
   Diag *diag;
-  if (!(diag = CodecInputStream::init_from_file(path, codec, stream->input_stream)))
+  if ((diag = CodecInputStream::init_from_file(path, codec, stream->input_stream)))
     return diag;
   result.reset(stream);
   return NULL;
@@ -99,7 +99,7 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
     result.cmd = CC_EOF;  
     return NULL;
   }
-  
+
   result.cmd = state.catcode(result.uc);
   switch (result.cmd) {
     case CC_IGNORE: {

@@ -11,4 +11,5 @@ UString::UString(const char *cstr) {
   for (size_t i = 0; i < length; i++) {
     raw[i] = (unichar)cstr[i];
   }
+  dirty_hash = true;
 }
