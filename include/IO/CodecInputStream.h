@@ -58,7 +58,7 @@ public:
    * @param path A constant C-string which follows the sematics of ByteBuffer::init_from_file().
    * @param codec A pointer to a valid Codec which will be used for decoding input.
    * @param result Where the resulting CodecInputStream is stored.
-   * @return Zero on success, non-zero on failure.
+   * @return NULL on success, pointer to diagnostic on failure.
    */
   static Diag *init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result);
 };

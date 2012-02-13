@@ -46,7 +46,7 @@ public:
    * @param path A constant C-String indicating the location of the file.
    * @param codec The codec used to decode the file.
    * @param result Where the resulting TokenInputStream is stored.
-   * @return Zero on success, non-zero on failure.
+   * @return NULL on success, a non-NULL diagnostic on failure.
    */
   static Diag *init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result);
 };
