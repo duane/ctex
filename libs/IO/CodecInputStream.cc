@@ -2,18 +2,19 @@
 
 using namespace tex;
 
-int CodecInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result) {
+Diag *CodecInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result) {
   assert(codec && "Was passed a NULL codec!");
   UniquePtr<ByteBuffer> buf;
-  if (ByteBuffer::init_from_file(path, buf)) {
-    return -1;
-  }
+  Diag *diag;
+  if (!(diag = ByteBuffer::init_from_file(path, buf)))
+    return diag;
+  
   CodecInputStream *stream = new CodecInputStream();
   stream->codec = codec;
   stream->buf.reset(buf.take()); // copy the pointer safely.
   stream->stream_name = path;
   result.reset(stream);
-  return 0;
+  return NULL;
 }
 
 int CodecInputStream::peek_char(unichar &read) {

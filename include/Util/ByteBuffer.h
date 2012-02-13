@@ -1,8 +1,9 @@
 #ifndef __INCLUDE_ANCILLARY_BYTEBUFFER_H__
 #define __INCLUDE_ANCILLARY_BYTEBUFFER_H__
 
-//#include <stddef.h>
 #include <stdint.h>
+
+#include <Diag/Diag.h>
 #include <Util/UniquePtr.h>
 
 namespace tex {
@@ -38,7 +39,7 @@ public:
    *  @param result Where the resulting ByteBuffer is placed.
    *  @return Zero on success, non-zero on failure.
    */
-  static int init_from_file(const char *path, UniquePtr<ByteBuffer> &result);
+  static Diag *init_from_file(const char *path, UniquePtr<ByteBuffer> &result);
   
   /**
    *  Fetches the byte at the offset.

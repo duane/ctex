@@ -1,7 +1,7 @@
 #ifndef __INCLUDE_DIAG_DIAG_H__
 #define __INCLUDE_DIAG_DIAG_H__
 
-#include <IO/BlameSource.h>
+#include <Diag/BlameSource.h>
 
 namespace tex {
 
@@ -10,6 +10,8 @@ enum {
   DIAG_OK = 0,
   DIAG_FILE_OPEN_ERR,
   DIAG_FILE_WRITE_ERR,
+  DIAG_FILE_READ_ERR,
+  DIAG_FILE_MISC_ERR,
   DIAG_PARSE_ERR,
 };
 

@@ -1,1 +1,1 @@
-add_library(Diag Diag.cc)
+add_library(Diag BlameSource.cc Diag.cc)

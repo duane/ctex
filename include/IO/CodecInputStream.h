@@ -1,6 +1,7 @@
 #ifndef __INCLUDE_IO_CODECINPUTSTREAM_H__
 #define __INCLUDE_IO_CODECINPUTSTREAM_H__
 
+#include <Diag/Diag.h>
 #include <IO/CodecInputStream.h>
 #include <Unicode/Codec.h>
 #include <Util/ByteBuffer.h>
@@ -59,7 +60,7 @@ public:
    * @param result Where the resulting CodecInputStream is stored.
    * @return Zero on success, non-zero on failure.
    */
-  static int init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result);
+  static Diag *init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result);
 };
 }  // namespace tex
 

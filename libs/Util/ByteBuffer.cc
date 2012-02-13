@@ -9,36 +9,34 @@
 
 using namespace tex;
 
-int ByteBuffer::init_from_file(const char *path, UniquePtr<ByteBuffer> &result) {
+Diag *ByteBuffer::init_from_file(const char *path, UniquePtr<ByteBuffer> &result) {
   ByteBuffer *buf = new ByteBuffer();
   FILE *file = fopen(path, "r");
   if (!file)
-    return -1;
+    return new GenericDiag("Unable to open file.", DIAG_FILE_OPEN_ERR, BLAME_HERE);
 
   int fildes = fileno(file);
   struct stat fileStat;
   if (fstat(fildes, &fileStat))
-     return -1;
+    return new GenericDiag("Unable to stat file.", DIAG_FILE_MISC_ERR, BLAME_HERE);
   size_t fileSize = fileStat.st_size;
   
   uint8_t *raw_buffer = new uint8_t[fileSize];
-  if (!raw_buffer)
-    return -1;
 
   if (fread(raw_buffer, 1, fileSize, file) != fileSize) {
     delete raw_buffer;
-    return -1;
+    return new GenericDiag("Unable to read entire file.", DIAG_FILE_READ_ERR, BLAME_HERE);
   }
 
   if(fclose(file)) {
     delete raw_buffer;
-    return -1;
+    return new GenericDiag("Unable to close file.", DIAG_FILE_MISC_ERR, BLAME_HERE);
   }
 
   buf->raw_buffer = raw_buffer;
   buf->buffer_size = fileSize;
   result.reset(buf);
-  return 0;
+  return NULL;
 }
 
 uint8_t ByteBuffer::get(size_t offset) const {

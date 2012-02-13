@@ -48,7 +48,7 @@ public:
    * @param result Where the resulting TokenInputStream is stored.
    * @return Zero on success, non-zero on failure.
    */
-  static int init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result);
+  static Diag *init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result);
 };
 }
 

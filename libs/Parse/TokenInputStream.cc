@@ -4,13 +4,13 @@
 
 using namespace tex;
 
-int TokenInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result) {
+Diag *TokenInputStream::init_from_file(const char *path, const Codec *codec, UniquePtr<TokenInputStream> &result) {
   TokenInputStream *stream = new TokenInputStream();
-  int status = CodecInputStream::init_from_file(path, codec, stream->input_stream);
-  if (status)
-    return status;
+  Diag *diag;
+  if (!(diag = CodecInputStream::init_from_file(path, codec, stream->input_stream)))
+    return diag;
   result.reset(stream);
-  return 0;
+  return NULL;
 }
 
 inline unsigned hex_uchar_to_uint(unichar hex) {

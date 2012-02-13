@@ -1,4 +1,4 @@
-#include <IO/BlameSource.h>
+#include <Diag/BlameSource.h>
 #include <string>
 
 using namespace tex;
