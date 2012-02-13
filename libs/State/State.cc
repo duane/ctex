@@ -80,5 +80,5 @@ State::~State() {
       entry = next;
     }
   }
-  delete cs_table;
+  delete[] cs_table;
 }

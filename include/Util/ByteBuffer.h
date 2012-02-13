@@ -63,7 +63,7 @@ public:
   
   /** The deconstructor deallocates the buffer. */
   ~ByteBuffer(void) {
-    delete raw_buffer;
+    delete[] raw_buffer;
   }
 };
 

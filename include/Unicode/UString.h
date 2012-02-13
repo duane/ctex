@@ -61,7 +61,7 @@ public:
     assert(this != &other && "Attempted to copy string to itself.");
 
     if (raw)
-      delete raw;
+      delete[] raw;
     
     allocated = length = other.get_length();
     raw = new unichar[allocated];
@@ -81,7 +81,7 @@ public:
   
   /** The deconstructor frees allocated memory. */
   ~UString() {
-    delete raw;
+    delete[] raw;
   }
   
   /**
@@ -231,7 +231,7 @@ public:
     if (length >= allocated) {
       unichar *temp = new unichar[allocated * 2];
       memcpy(temp, raw, allocated * sizeof(unichar));
-      delete raw;
+      delete[] raw;
       raw = temp;
       allocated = allocated * 2;
     }
