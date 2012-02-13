@@ -22,10 +22,10 @@ UString *Codec::DecodeBuffer(EncodedBuffer buf) {
 
 EncodedBuffer Codec::GetEncodedBuffer(UString *str) {
   EncodedBuffer eb;
-  size_t allocated = str->getAllocated();
-  size_t length = str->getLength();
+  size_t allocated = str->get_allocated();
+  size_t length = str->get_length();
   size_t destIndex = 0;
-  unichar *data = str->getRaw();
+  unichar *data = str->get_raw();
   uint8_t *dest = new uint8_t[allocated];
   for (size_t index = 0; index < length; index++) {
     EncodedCharacter ec = encode(data[index]);

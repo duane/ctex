@@ -71,17 +71,17 @@ public:
   }
   
   /** Returns the internal character buffer. */
-  unichar *getRaw() const {
+  unichar *get_raw() const {
     return raw;
   }
   
   /** Returns the size of the allocated buffer, in bytes. */
-  size_t getAllocated() const {
+  size_t get_allocated() const {
     return allocated * sizeof(unichar);
   }
 
   /** Returns the number of characters stored in the UString. */
-  size_t getLength() const {
+  size_t get_length() const {
     return length;
   }
   
@@ -117,10 +117,10 @@ public:
    *  @return true on equal, false on unequal.
    */
   bool equalq(UString &other) {
-    if (length != other.getLength())
+    if (length != other.get_length())
       return false;
     
-    if (length == 0 && other.getLength() == 0)
+    if (length == 0 && other.get_length() == 0)
       return true;
 
     if (hash() != other.hash())
@@ -171,9 +171,9 @@ public:
   /** The copy constructor; copies as expected. */
   explicit MutableUString(UString &string) {
     // copy the data
-    allocated = length = string.getLength();
+    allocated = length = string.get_length();
     raw = new unichar[allocated];
-    memcpy(raw, string.getRaw(), allocated * sizeof(unichar));
+    memcpy(raw, string.get_raw(), allocated * sizeof(unichar));
     dirty_hash = true;
   }
   

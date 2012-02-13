@@ -135,7 +135,7 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
       parser_state = STATE_NEWLINE;
       if (p_state == STATE_NEWLINE) {
         result.cmd = CC_CS_STRING;
-        result.string = UString::FromCString("par");
+        result.string = new UString("par");
         return NULL;
       } else if (p_state == STATE_SKIP_SPACES) {
         return consume_token(state, result);
