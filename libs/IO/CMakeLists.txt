@@ -1,1 +1,1 @@
-add_library(IO CodecInputStream.cc CodecOutputStream.cc)
+add_library(IO BinaryInputStream.cc CodecInputStream.cc CodecOutputStream.cc)
