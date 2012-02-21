@@ -28,7 +28,10 @@ public:
   }
   
   /** Member operator for convenience. */
-  T *operator->() const {return ptr;}
+  T *operator->() const {
+    assert(ptr && "Accessing member of null pointer!");
+    return ptr;
+  }
   
   /** The same as calling bool(ptr). */
   operator bool() const {

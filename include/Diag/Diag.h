@@ -13,6 +13,8 @@ enum {
   DIAG_FILE_READ_ERR,
   DIAG_FILE_MISC_ERR,
   DIAG_PARSE_ERR,
+  
+  DIAG_TFM_PARSE_ERR,
 };
 
 /** Diag is the base Diagnostic class.

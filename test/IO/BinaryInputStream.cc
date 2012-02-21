@@ -15,6 +15,7 @@ TEST(BinaryInputStreamTest, Empty) {
   ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Empty", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
+  ASSERT_EQ(0u, stream->size());
   uint8_t byte;
   uint16_t byte16;
   uint32_t byte32;
@@ -30,6 +31,7 @@ TEST(BinaryInputStreamTest, Single) {
   ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
+  ASSERT_EQ(1u, stream->size());
   uint8_t byte = 0x0;
   ASSERT_EQ(0, stream->read_uint8(byte));
   ASSERT_EQ(0x51u, byte);
@@ -50,6 +52,7 @@ TEST(BinaryInputStreamTest, Byte16) {
   ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte16", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
+  ASSERT_EQ(2u, stream->size());
   
   // First test a single double 
   uint8_t byte = 0x0;
@@ -81,6 +84,7 @@ TEST(BinaryInputStreamTest, Byte24) {
   ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte24", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
+  ASSERT_EQ(3u, stream->size());
   
   // three-byte read first.
   uint8_t byte = 0x0;
@@ -118,6 +122,7 @@ TEST(BinaryInputStreamTest, Byte32) {
   ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte32", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
+  ASSERT_EQ(4u, stream->size());
   
   // byte-by-byte read first.
   uint8_t byte;
@@ -165,6 +170,7 @@ TEST(BinaryInputStreamTest, Byte64) {
   ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte64", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
+  ASSERT_EQ(8u, stream->size());
   
   // No need to check all reads again. Just check 64-bit.
   // little endian first.

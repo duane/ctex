@@ -50,9 +50,26 @@ public:
     return curr_offset;
   }
   
+  /** 
+   *  Fetches the size of the file.
+   *  @return the size of the file.
+   */
+  uint64_t size(void) const {
+    return buf->size();
+  }
+  
   /** Resets stream to offset of 0. */
   void reset(void) {
     curr_offset = 0;
+  }
+  
+  /**
+   *  Seeks to a given offset.
+   *  @param offset The new offset to seek to.
+   */
+  void seek(uint64_t offset) {
+    assert(offset < buf->size() && "Attempted to seek past the end of the file.");
+    curr_offset = offset;
   }
   
   /**
@@ -89,6 +106,16 @@ public:
    *  @return 0 on success, -1 on EOF.
    */
   int read_uint64(uint64_t &result);
+  
+  /**
+   *  Copies bytes from stream to destination.
+   *  @param dest The destination memory.
+   *  @param size How many bytes to read.
+   *  @return 0 on success, -1 on EOF.
+   */
+   int read_bytes(uint8_t *dest, uint32_t size);
+   
+  
 };
 
 }  // namespace tex

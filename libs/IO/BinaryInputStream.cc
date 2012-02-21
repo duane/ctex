@@ -55,3 +55,11 @@ int BinaryInputStream::read_uint64(uint64_t &result) {
   curr_offset += 8;
   return 0;
 }
+
+int BinaryInputStream::read_bytes(uint8_t *dest, uint32_t size) {
+  if ((curr_offset + size) >= buf->size())
+    return -1;
+  buf->get_bytes(curr_offset, size, dest);
+  curr_offset += size;
+  return 0;
+}

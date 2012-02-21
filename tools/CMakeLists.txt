@@ -1,1 +1,2 @@
 add_subdirectory(command)
+add_subdirectory(tfm_print)
