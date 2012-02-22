@@ -2,7 +2,6 @@
 
 #include <Type/TFM.h>
 
-
 using namespace tex;
 
 char *TFM::create_fix_word_string(int32_t fix_word) {
@@ -42,31 +41,33 @@ char *TFM::create_fix_word_string(int32_t fix_word) {
   return str;
 }
 
-Diag *TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, TFM *tfm) {
+// This is one ugly piece of code.
+// However, it is written in a straightforward manner.
+void TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, UniquePtr<TFM> &tfm) {
   if (!lh)
-    return NULL;
+    return;
   
   if (stream->read_uint32(tfm->file_checksum))
     assert(false && "Unexpected EOF! Internal state error.");
   
   if (lh == 1)
-    return NULL;
+    return;
   
   if (stream->read_uint32((uint32_t&)tfm->design_size))
     assert(false && "Unexpected EOF! Internal state error.");
   
   if (lh == 2)
-    return NULL;
+    return;
     
   if (lh < 11)
-    return new GenericDiag("TFM header is a bad size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM header is a bad size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   uint8_t char_code_size;
   if (stream->read_uint8(char_code_size))
     assert(false && "Unexpected EOF! Internal state error.");
   
   if (char_code_size > 39)
-    return new GenericDiag("TFM header has a bad character coding convention string length byte.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM header has a bad character coding convention string length byte.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   if (stream->read_bytes((uint8_t*)tfm->char_code_conv, 39))
     assert(false && "Unexpected EOF! Internal state error.");
@@ -74,17 +75,17 @@ Diag *TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, TFM *t
   tfm->char_code_conv[char_code_size] = '\0';
   
   if (lh == 11)
-    return NULL;
+    return;
   
   if (lh < 16)
-    return new GenericDiag("TFM header is a bad size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM header is a bad size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   uint8_t font_id_size;
   if (stream->read_uint8(font_id_size))
     assert(false && "Unexpected EOF! Internal state error.");
   
   if (font_id_size > 19)
-    return new GenericDiag("TFM header has bad font identiifcation string length byte.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM header has bad font identiifcation string length byte.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
 
   if (stream->read_bytes((uint8_t*)tfm->font_id, 19))
     assert(false && "Unexpected EOF! Internal state error.");
@@ -92,7 +93,7 @@ Diag *TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, TFM *t
   tfm->font_id[font_id_size] = '\0';
   
   if (lh == 16)
-    return NULL;
+    return;
   
   uint32_t seven_face;
   if (stream->read_uint32(seven_face))
@@ -104,11 +105,9 @@ Diag *TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, TFM *t
   if (lh > 17) {
     stream->seek(stream->offset() + (lh - 17) * 4);
   }
-  
-  return NULL;
 }
 
-void TFM::read_char_info(UniquePtr<BinaryInputStream> &stream, TFM *tfm) {
+void TFM::read_char_info(UniquePtr<BinaryInputStream> &stream, UniquePtr<TFM> &tfm) {
   unsigned chars = tfm->char_upper - tfm->char_lower + 1;
   for (unsigned c = 0; c < chars; c++) {
     // read a single char_info
@@ -145,27 +144,25 @@ static void read_fix_word_table(UniquePtr<BinaryInputStream> &stream, TFM::fix_w
 }
 
 
-Diag *TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
+void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   UniquePtr<BinaryInputStream> stream;
-  Diag *diag;
-  if ((diag = BinaryInputStream::init_from_file(path, stream)))
-    return diag;
-  
-  // TFM files are big endian
+  BinaryInputStream::init_from_file(path, stream);
+
+    // TFM files are big endian
   stream->set_endian(ENDIAN_BIG);
   
   // The first 24 bytes are guaranteed.
   if (stream->size() < 24)
-    return new GenericDiag("TFM file not large enough.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM file not large enough.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   uint16_t lf, lh, bc, ec, nw, nh, nd, ni, nl, nk, ne, np;
   if (stream->read_uint16(lf))
-    return new GenericDiag("TFM file empty.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM file empty.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   if ((lf < 6))
-    return new GenericDiag("TFM file not large enough to hold header.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM file not large enough to hold header.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
 
   if ((lf * 4) != stream->size())
-    return new GenericDiag("TFM file incorrect size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("TFM file incorrect size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   if    (stream->read_uint16(lh)
       || stream->read_uint16(bc)
@@ -185,19 +182,20 @@ Diag *TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
       }
 
   if ((bc > 0 && (bc - 1) > ec) || ec > 255)
-    return new GenericDiag("Bad character range in TFM file.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("Bad character range in TFM file.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   if (ne > 256)
-    return new GenericDiag("Extensible character table larger than valid size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("Extensible character table larger than valid size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   uint16_t check_size = 6 + lh + (ec - bc + 1) + nw + nh + nd + ni + nl + nk + ne + np;
   if (check_size != lf)
-    return new GenericDiag("Size of file does not equal expected size of file.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
+    throw new GenericDiag("Size of file does not equal expected size of file.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   // Ok, so now we're ready to actually commit to an object.
-  TFM *tfm = new TFM();
+  UniquePtr<TFM> tfm;
+  tfm.reset(new TFM());
 
-  tfm->width_size = nw;
+    tfm->width_size = nw;
   tfm->height_size = nh;
   tfm->depth_size = nd;
   tfm->italic_size = ni;
@@ -216,20 +214,14 @@ Diag *TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   tfm->char_info = new char_info_word[tfm->char_upper - tfm->char_lower + 1];
   
   // let's read the remainder of the TFM file.
-  if ((diag = read_header(stream, lh, tfm))) {
-    delete tfm;
-    return diag;
-  }
-  
+  read_header(stream, lh, tfm);
   read_char_info(stream, tfm);
   read_fix_word_table(stream, tfm->width_table, tfm->width_size);
   read_fix_word_table(stream, tfm->height_table, tfm->height_size);
   read_fix_word_table(stream, tfm->depth_table, tfm->depth_size);
   read_fix_word_table(stream, tfm->italic_table, tfm->italic_size);
   
-  result.reset(tfm);
-  
-  return NULL;
+  result.reset(tfm.take());
 }
 
 TFM::~TFM(void) {

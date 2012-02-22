@@ -4,12 +4,12 @@ using namespace tex;
 
 int main(int argc, char **argv) {
   UniquePtr<DVIWriter> writer;
-  Diag *diag = DVIWriter::init_with_file("hello.dvi", writer);
-  if (diag) {
+  try {
+    DVIWriter::init_with_file("hello.dvi", writer);
+  } catch (Diag *diag) {
     diag->print();
     return 1;
   }
-
   writer->pre(2, 25400000u, 473628672u, 1000, " TeX output 2010.11.12:1134");
   int32_t c[10] = {1};
   writer->bop(c);

@@ -23,7 +23,7 @@ private:
   uint16_t curr_depth;
   
 public:
-  static Diag *init_with_file(const char *path, UniquePtr<DVIWriter> &result);
+  static void init_with_file(const char *path, UniquePtr<DVIWriter> &result);
 
   void set_char(uint32_t c);
   

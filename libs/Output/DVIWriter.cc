@@ -2,16 +2,12 @@
 
 using namespace tex;
 
-Diag *DVIWriter::init_with_file(const char *path, UniquePtr<DVIWriter> &result) {
-  DVIWriter *writer = new DVIWriter();
-  Diag *diag;
-  if ((diag = BinaryOutputStream::init_with_file(path, writer->output))) {
-    delete writer;
-    return diag;
-  }
+void DVIWriter::init_with_file(const char *path, UniquePtr<DVIWriter> &result) {
+  UniquePtr<DVIWriter> writer;
+  writer.reset(new DVIWriter());
+  BinaryOutputStream::init_with_file(path, writer->output);
   writer->output->set_endian(ENDIAN_BIG);
-  result.reset(writer);
-  return NULL;
+  result.reset(writer.take());
 }
 
 void DVIWriter::set_char(uint32_t c) {

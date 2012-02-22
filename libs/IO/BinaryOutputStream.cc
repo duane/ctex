@@ -2,16 +2,15 @@
 
 using namespace tex;
 
-Diag *BinaryOutputStream::init_with_file(const char *path, UniquePtr<BinaryOutputStream> &result) {
+void BinaryOutputStream::init_with_file(const char *path, UniquePtr<BinaryOutputStream> &result) {
   FILE *output = fopen(path, "w");
   if (!output) {
-    return new GenericDiag("Unable to open file.", DIAG_FILE_OPEN_ERR, BLAME_HERE);
+    throw new GenericDiag("Unable to open file.", DIAG_FILE_OPEN_ERR, BLAME_HERE);
   }
   
   BinaryOutputStream *stream = new BinaryOutputStream();
   stream->output = output;
   result.reset(stream);
-  return NULL;
 }
 
 BinaryOutputStream::~BinaryOutputStream(void) {

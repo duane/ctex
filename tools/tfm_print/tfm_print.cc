@@ -63,12 +63,12 @@ static inline void print_tfm(UniquePtr<TFM> &tfm) {
 
 int main(int argc, char **argv) {
   UniquePtr<TFM> tfm;
-  Diag *diag = TFM::init_from_file("cmr10.tfm", tfm);
-  if (diag) {
+  try {
+    TFM::init_from_file("cmr10.tfm", tfm);
+  } catch (Diag *diag) {
     diag->print();
     return 1;
   }
-  
   print_tfm(tfm);
   return 0;
 }
