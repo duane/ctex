@@ -9,11 +9,7 @@ using namespace tex;
 int main(int argc, char **argv) {
   State state;
   UniquePtr<TokenInputStream> cmd_input;
-  if (TokenInputStream::init_from_file("test.tex", new ASCIICodec(), cmd_input)) {
-    printf("PANIC.\n");
-    return 1;
-  }
-  
+  TokenInputStream::init_from_file("test.tex", new ASCIICodec(), cmd_input);
   Diag *diag = NULL;
   Token result;
   while (!(diag = cmd_input->consume_token(state, result))) {

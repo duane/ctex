@@ -38,8 +38,9 @@ public:
    *  @param path The path to the file to be opened and read.
    *  @param result Where the resulting ByteBuffer is placed.
    *  @return NULL on success, a pointer to a diagnostic on failure.
+   *  @throws Diag* on failure.
    */
-  static Diag *init_from_file(const char *path, UniquePtr<ByteBuffer> &result);
+  static void init_from_file(const char *path, UniquePtr<ByteBuffer> &result);
   
   /**
    *  Fetches the byte at the offset.

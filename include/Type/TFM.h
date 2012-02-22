@@ -71,8 +71,8 @@ private:
               seven_bit_safe_flag(0), font_face(0), char_info(NULL),
               width_table(NULL), height_table(NULL), depth_table(NULL), italic_table(NULL) {}
               
-  static Diag *read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, TFM *tfm);
-  static void read_char_info(UniquePtr<BinaryInputStream> &stream, TFM *tfm);
+  static void read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, UniquePtr<TFM> &tfm);
+  static void read_char_info(UniquePtr<BinaryInputStream> &stream, UniquePtr<TFM> &tfm);
 public:
   /** Returns the lower bound of the characters encoded in the TFM. */
   uint16_t lower_char(void) const {
@@ -165,7 +165,7 @@ public:
    *  @param result Where the resulting TFM is stored.
    *  @return NULL on success, non-NULL Diag* on failure.
    */
-  static Diag *init_from_file(const char *path, UniquePtr<TFM> &result);
+  static void init_from_file(const char *path, UniquePtr<TFM> &result);
   
   /** Deconstructor frees allocated memory. */
   ~TFM(void);

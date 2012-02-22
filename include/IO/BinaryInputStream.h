@@ -30,9 +30,9 @@ public:
    *  Endian is set to ENDIAN_HOST by default, and the stream is set at offset 0.
    *  @param path Where to find the file.
    *  @param result Where the resulting BinaryInputStream is stored.
-   *  @return NULL on success, non-NULL Diag* on failure.
+   *  @throws Diag* on failure.
    */
-  static Diag *init_from_file(const char *path, UniquePtr<BinaryInputStream> &result);
+  static void init_from_file(const char *path, UniquePtr<BinaryInputStream> &result);
   
   /**
    *  Sets the current endian of the file.

@@ -24,7 +24,10 @@ private:
   unsigned curr_endian;
 
 public:
-  static Diag *init_with_file(const char *path, UniquePtr<BinaryOutputStream> &result);
+  /**
+   *
+   */
+  static void init_with_file(const char *path, UniquePtr<BinaryOutputStream> &result);
   
   void set_endian(unsigned endian) {
     assert((endian == ENDIAN_BIG || endian == ENDIAN_LITTLE) && "Attempted to use invalid endian.");

@@ -2,15 +2,15 @@
 
 using namespace tex;
 
-Diag *BinaryInputStream::init_from_file(const char *path, UniquePtr<BinaryInputStream> &result) {
+void BinaryInputStream::init_from_file(const char *path, UniquePtr<BinaryInputStream> &result) {
   BinaryInputStream *stream = new BinaryInputStream();
-  Diag *diag;
-  if ((diag = ByteBuffer::init_from_file(path, stream->buf))) {
+  try {
+    ByteBuffer::init_from_file(path, stream->buf);
+  } catch (Diag *diag) {
     delete stream;
-    return diag;
-  }
+    throw diag;
+  } 
   result.reset(stream);
-  return NULL;
 }
 
 

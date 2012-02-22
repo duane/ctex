@@ -60,7 +60,7 @@ public:
    * @param result Where the resulting CodecInputStream is stored.
    * @return NULL on success, pointer to diagnostic on failure.
    */
-  static Diag *init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result);
+  static void init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result);
 };
 }  // namespace tex
 
