@@ -37,7 +37,8 @@ public:
   }
   
   /**
-   *  This constructor allocates memory for the buffer, copies the given unichars into it, and marks the hash code as inaccurate.
+   *  This constructor allocates memory for the buffer, copies
+   *  the given unichars into it, and marks the hash code as inaccurate.
    *  @param uchar The buffer of characters to be copied.
    *  @param len The length of the buffer, in unichars, not bytes.
    */
@@ -135,21 +136,17 @@ public:
    *  Checks equality using the following methods in order:
    *  1. a.length != b.length => false
    *  2. a.length == b.length == 0 => true
-   *  3. a.hash != b.hash => false
-   *  4. A character-by-character check.
+   *  3. A character-by-character check.
    *  @param other The string to be compared.
    *  @return true on equal, false on unequal.
    */
-  bool equalq(UString &other) {
+  bool operator==(const UString &other) {
     if (length != other.get_length())
       return false;
     
     if (length == 0 && other.get_length() == 0)
       return true;
 
-    if (hash() != other.hash())
-      return false;
-    
     // now do a char-basis equality check.
     for (size_t i = 0; i < length; i++) {
       if (raw[i] != other.get(i))
@@ -178,8 +175,10 @@ protected: // So MutableUString can access them.
  *  MutableUString is the mutable variant of UString.
  *  MutableUString is treated like a vector of bytes:
  *  1. The initial allocation for an empty string is 16 characters.
- *  2. If a character is added which should lie outside the allocated buffer, the allocated size is doubled and the string is copied.
- *  3. Unlike UString, the allocated buffer is often larger than the buffer being used; however, MutableUString can be passed anywhere a UString is requested.
+ *  2. If a character is added which should lie outside the allocated buffer,
+ *     the allocated size is doubled and the string is copied.
+ *  3. Unlike UString, the allocated buffer is often larger than the buffer
+ *     being used; however, MutableUString can be passed anywhere a UString is requested.
  */
 class MutableUString : public UString {
 public:
@@ -224,7 +223,8 @@ public:
   }
   
   /**
-   *  Appends a character to the end of the string. If necessary, the string doubles its allocated buffer and copies the old to the new.
+   *  Appends a character to the end of the string. If necessary,
+   *  the string doubles its allocated buffer and copies the old to the new.
    *  @param uchar The character to be appended to the string.
    */
   void add(unichar uchar) {
@@ -241,6 +241,6 @@ public:
   }
 };
 
-};  // namespace tex
+}  // namespace tex
 
 #endif  // __INCLUDE_USTRING_H__
