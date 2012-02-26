@@ -7,14 +7,33 @@
 
 namespace tex {
 
+// a helper method, HashUInt.
+
+class HashUInt {
+public:
+  uint32_t val;
+
+  HashUInt(const uint32_t &v = 0) : val(v) {}
+
+  uint32_t hash(void) const {
+    return val;
+  }
+
+  bool operator==(const HashUInt &other) {
+    return val == other.val;
+  }
+
+  HashUInt operator=(const uint32_t &v) {
+    return HashUInt(v);
+  }
+
+};
+
 template<typename K, typename V>
 class HashMap {
 private:
-  // Disallow copy/assign.
-  HashMap(const HashMap &);
   HashMap &operator=(const HashMap &);
-
-private:
+public:
   struct HashEntry {
     HashEntry *next;
     K key;
@@ -62,14 +81,19 @@ public:
     delete[] table;
   }
 
+  uint32_t size(void) const {
+    return table_size;
+  }
+
   uint32_t entries(void) const {
     return table_entries;
   }
 
-  void set(K &key, V &value) {
+  void set(K &key, const V &value) {
     HashEntry **reference = NULL, *entry;
     entry = find_entry(key, &reference);
-    assert(reference && "Internal error! Failed to find correct entry position in hash map.");
+    assert(reference
+    && "Internal error! Failed to find correct entry position in hash map.");
     if (entry) {
       entry->val = value;
     } else {
@@ -90,8 +114,92 @@ public:
       return NULL;
     return &entry->val;
   }
+
+  HashEntry *get_entry(K &key) const {
+    HashEntry **reference, *entry;
+    entry = find_entry(key, &reference);
+    return entry;
+  }
+
+public:
+  class iterator {
+  public:
+    HashMap<K, V> map;
+    uint32_t curr_bucket;
+    HashEntry *curr_entry;
+
+    bool operator==(const iterator &iter) const {
+      return curr_bucket == iter.curr_bucket && curr_entry == iter.curr_entry;
+    }
+
+    bool operator!=(const iterator &iter) const {
+      return curr_bucket != iter.curr_bucket || curr_entry != iter.curr_entry;
+    }
+
+    void operator++(int) {
+      map.advance_iterator(*this);
+    }
+
+    K &key(void) const {
+      assert(curr_entry && "Attempted to fetch key for NULL hash entry.");
+      return curr_entry->key;
+    }
+
+    V &value(void) const {
+      assert(curr_entry && "Attempted to fetch value for NULL hash entry.");
+      return curr_entry->val;
+    }
+
+    iterator(const HashMap<K, V> &map, uint32_t bucket, HashEntry *entry) :
+             map(map), curr_bucket(bucket), curr_entry(entry) {}
+
+  };
+
+  void advance_iterator(iterator &iter) const {
+    iterator end_iter = end();
+    assert(iter != end_iter &&
+    "Attempted to advance end iterator.");
+    if (iter.curr_entry)
+      iter.curr_entry = iter.curr_entry->next;
+    while (!iter.curr_entry) {
+      iter.curr_bucket += 1;
+      if (iter.curr_bucket >= table_size)
+        return;
+      iter.curr_entry = table[iter.curr_bucket];
+    }
+  }
+
+public:
+  iterator begin() const {
+    if (table_entries == 0)
+      return end();
+    iterator iter = iterator(*this, 0, table[0]);
+    if (!iter.curr_entry)
+      advance_iterator(iter);
+    return iter;
+  }
+
+  iterator end() const {
+    return iterator(*this, table_size, NULL);
+  }
+
+// Now an explicit deep-copy constructor.
+public:
+  explicit HashMap(const HashMap &other) :
+                   table_size(other.size()), table_entries(0) {
+    table = new HashEntry*[table_size];
+    memset(table, 0, table_size * sizeof(HashEntry*));
+
+    for (iterator iter = other.begin(); iter != other.end(); iter++) {
+      set(iter.key(), iter.value());
+    }
+  }
+
+  /*HashMap operator=(const HashMap &other) const {
+    return HashMap(other);
+  }*/
 };
 
-}
+}  // namespace tex
 
 #endif  // __INCLUDE_UTIL_HASHMAP_H__
