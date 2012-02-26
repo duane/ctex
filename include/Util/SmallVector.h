@@ -33,7 +33,6 @@ private:
 
 public:
   SmallVector(void) : heap(NULL), allocated(n), elems(0) {
-
   }
 
   ~SmallVector(void) {
@@ -91,7 +90,7 @@ public:
    */
   T &get(size_t i) {
     assert(i < elems && "Attempted to access an element out of bounds.");
-    if (allocated < n)
+    if (allocated <= n)
       return stack[i];
     assert(heap && "Attempted to access NULL heap.");
     return heap[i];
