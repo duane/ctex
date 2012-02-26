@@ -28,7 +28,11 @@ State::State(void) {
   fonts.append(f);
 
   // and load CMR10;
-  curr_font = load_font("CMR10.tfm", sp(-1000));
+  curr_font = load_font("cmr10.tfm", sp(-1000));
+}
+
+void State::init(UniquePtr<State> &result) {
+  result.reset(new State());
 }
 
 uint32_t State::load_font(const char *path, sp at) {

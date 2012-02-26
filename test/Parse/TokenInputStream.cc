@@ -20,7 +20,8 @@ TEST(TokenInputStreamTest, NonExistentFile) {
 TEST(TokenInputStreamTest, Empty) {
   UTF8Codec codec;
   UniquePtr<TokenInputStream> input_stream;
-  State state;
+  UniquePtr<State> state;
+  State::init(state);
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Empty", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;
@@ -31,7 +32,8 @@ TEST(TokenInputStreamTest, Empty) {
 TEST(TokenInputStreamTest, Spaces) {
   UTF8Codec codec;
   UniquePtr<TokenInputStream> input_stream;
-  State state;
+  UniquePtr<State> state;
+  State::init(state);
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Spaces", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;
@@ -44,7 +46,8 @@ TEST(TokenInputStreamTest, Spaces) {
 TEST(TokenInputStreamTest, Newlines) {
   UTF8Codec codec;
   UniquePtr<TokenInputStream> input_stream;
-  State state;
+  UniquePtr<State> state;
+  State::init(state);
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Newlines", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;

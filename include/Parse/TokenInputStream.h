@@ -29,8 +29,8 @@ private:
 
 private:
   // internal parsing methods
-  int read_translated_char(State &state, unichar &uc);
-  int read_command_sequence(State &state, UString &result);
+  int read_translated_char(UniquePtr<State> &state, unichar &uc);
+  int read_command_sequence(UniquePtr<State> &state, UString &result);
 
 public:
   /** 
@@ -39,7 +39,7 @@ public:
    * @param result Where the resulting token is stored. EOF is indicated by returning a token with the cmd type of CC_EOF
    * @return NULL on success, non-NULL diagnostic on error.
    */
-  Diag *consume_token(State &state, Token &result);
+  Diag *consume_token(UniquePtr<State> &state, Token &result);
   
   /**
    * Initializes the stream from a  file.

@@ -7,7 +7,8 @@
 using namespace tex;
 
 int main(int argc, char **argv) {
-  State state;
+  UniquePtr<State> state;
+  State::init(state);
   UniquePtr<TokenInputStream> cmd_input;
   TokenInputStream::init_from_file("test.tex", new ASCIICodec(), cmd_input);
   Diag *diag = NULL;

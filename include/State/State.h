@@ -9,6 +9,7 @@
 #include <Unicode/Unicode.h>
 #include <Util/HashMap.h>
 #include <Util/SmallVector.h>
+#include <Util/UniquePtr.h>
 
 namespace tex {
 /** The default hash table size used to store CommandSequences. */
@@ -34,6 +35,9 @@ private:
   State(const State &);
   State &operator=(const State &);
 
+    /** Initializes the state of the tex program to its default state. */
+  State(void);
+
 private:
   uint32_t curr_font;
 
@@ -57,9 +61,6 @@ public:
     return curr_font;
   }
 
-  /** Initializes the state of the tex program to its default state. */
-  State(void);
-  
   ~State(void) {
 
   }
@@ -87,6 +88,8 @@ public:
   }
 
   uint32_t load_font(const char *font, sp at);
+
+  static void init(UniquePtr<State> &result);
 };
 
 }
