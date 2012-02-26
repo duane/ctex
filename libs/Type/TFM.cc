@@ -41,6 +41,10 @@ char *TFM::create_fix_word_string(int32_t fix_word) {
   return str;
 }
 
+static inline sp sp_from_fixed(const TFM::fix_word f) {
+  return sp(f >> 4);
+}
+
 // This is one ugly piece of code.
 // However, it is written in a straightforward manner.
 void TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, UniquePtr<TFM> &tfm) {
@@ -224,6 +228,24 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   result.reset(tfm.take());
 }
 
+void TFM::populate_font(Font &font, sp at) const {
+  sp z = sp_from_fixed(design_size);
+  if (at != -1000) {
+    if (at > 0)
+      z = at;
+    else
+      z = z.xn_over_d(-at.val, 1000);
+  }
+  for (unsigned c = char_lower; c <= char_upper; c++) {
+    CharInfo info;
+    info.width = sp_from_fixed(width(c));
+    info.height = sp_from_fixed(height(c));
+    info.depth = sp_from_fixed(depth(c));
+    info.italic = sp_from_fixed(italic(c));
+    font.set(c, info);
+  }
+}
+
 TFM::~TFM(void) {
   delete[] width_table;
   delete[] height_table;
@@ -231,3 +253,4 @@ TFM::~TFM(void) {
   delete[] italic_table;
   delete[] char_info;
 }
+

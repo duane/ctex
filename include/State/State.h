@@ -5,8 +5,10 @@
 
 #include <State/CommandSequence.h>
 #include <tex/codes.h>
+#include <Type/Font.h>
 #include <Unicode/Unicode.h>
 #include <Util/HashMap.h>
+#include <Util/SmallVector.h>
 
 namespace tex {
 /** The default hash table size used to store CommandSequences. */
@@ -33,16 +35,16 @@ private:
   State &operator=(const State &);
 
 private:
+  uint32_t curr_font;
+
   // the actual state.
   uint8_t ccode[128];
 
   // CS table state
   HashMap<UString, CommandSequence> cs_map;
   
-private:
-  // internal methods
+  SmallVector<Font, 64> fonts;
   
-  CommandSequenceEntry *find_cs(UString &string, CommandSequenceEntry ***reference) const;
 public:
   /** @return The category code of the given character.*/
   uint8_t catcode(unichar uc) const {
@@ -51,29 +53,13 @@ public:
     return ccode[uc];
   }
 
+  uint32_t font(void) const {
+    return curr_font;
+  }
+
   /** Initializes the state of the tex program to its default state. */
-  State(void) : cs_map() {
-  // first initialize ccode to all "CC_OTHER_CHAR" as the default code.
-  for (unsigned i = 0; i < 128; i++) {
-    ccode[i] = CC_OTHER_CHAR;
-  }
-  // now initialize letters.
-  for (unsigned i = 0; i < 26; i++) {
-    ccode['A' + i] = CC_LETTER;
-    ccode['a' + i] = CC_LETTER;
-  }
+  State(void);
   
-  // now misc. initializations.
-  ccode[0x00] = CC_IGNORE;
-  ccode[0x20] = CC_SPACER; // ' ' 
-  ccode[0x5C] = CC_ESCAPE; // '\\'
-  ccode[0x25] = CC_COMMENT; // '%'
-  ccode[0x7F] = CC_INVALID;
-  ccode[0x0A] = CC_CAR_RET; // '\n'; technically deviates from tex.
-  ccode[0x0D] = CC_CAR_RET; // '\r'
-}
-  
-  /** Frees the internal hash table. */
   ~State(void) {
 
   }
@@ -99,6 +85,8 @@ public:
   uint32_t cs_entries(void) const {
     return cs_map.entries();
   }
+
+  uint32_t load_font(const char *font, sp at);
 };
 
 }
