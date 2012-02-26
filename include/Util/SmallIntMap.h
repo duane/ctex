@@ -53,12 +53,12 @@ public:
   typedef typename HashMap<HashUInt, T>::iterator map_iterator;
   class iterator {
   public:
-    const SmallIntMap<T, N> &map;
+    const SmallIntMap<T, N> *map;
     uint32_t curr_bucket;
     map_iterator curr_iter;
 
     iterator(uint32_t bucket, map_iterator &iter,
-             const SmallIntMap<T, N> &map_ref) :
+             const SmallIntMap<T, N> *map_ref) :
              map(map_ref), curr_bucket(bucket), curr_iter(iter) {}
 
     bool operator==(const iterator other) const {
@@ -71,7 +71,7 @@ public:
     }
 
     void operator++(int) {
-      map.advance_iterator(*this);
+      map->advance_iterator(*this);
     }
 
     uint32_t key(void) const {
@@ -82,7 +82,7 @@ public:
 
     const T &value(void) const {
       if (curr_bucket < N) {
-        const T *val = map.get(curr_bucket);
+        const T *val = map->get(curr_bucket);
         assert(val && "Attempted to get undefined value from iterator.");
         return *val;
       }
@@ -92,7 +92,7 @@ public:
 
   iterator begin(void) const {
     map_iterator map_iter = map.begin();
-    iterator iter(0, map_iter, *this);
+    iterator iter(0, map_iter, this);
     if (!defined[0])
       advance_iterator(iter);
     return iter;
@@ -100,7 +100,7 @@ public:
 
   iterator end(void) const {
     map_iterator end_iter = map.end();
-    return iterator(N, end_iter, *this);
+    return iterator(N, end_iter, this);
   }
 
   void advance_iterator(iterator &iter) const {
