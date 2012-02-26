@@ -22,8 +22,8 @@ public:
 TEST(HashMapTest, Empty) {
   HashMap<HashInt, HashInt> map;
   HashInt key = HashInt(0);
-  //ASSERT_EQ(0u, map.entries());
-  //ASSERT_EQ((HashInt*)NULL, map.get(key));
+  ASSERT_EQ(0u, map.entries());
+  ASSERT_EQ((HashInt*)NULL, map.get(key));
 }
 
 TEST(HashMapTest, SetGet) {
@@ -35,4 +35,10 @@ TEST(HashMapTest, SetGet) {
   HashInt *gotten = map.get(key);
   ASSERT_NE((HashInt*)NULL, gotten);
   ASSERT_EQ(val, *gotten);
+}
+
+TEST(HashMapTest, EmptyCopy) {
+  HashMap<HashUInt, uint32_t> map;
+  HashMap<HashUInt, uint32_t>::iterator begin_iter = map.begin(), end_iter = map.end();
+  ASSERT_EQ(end_iter, begin_iter);
 }
