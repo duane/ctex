@@ -32,7 +32,10 @@ private:
   size_t elems;
 
 public:
-  SmallVector(void) : elems(0), allocated(n), heap(NULL) {}
+  SmallVector(void) : heap(NULL), allocated(n), elems(0) {
+
+  }
+
   ~SmallVector(void) {
     if (heap)
       delete[] heap;
@@ -42,7 +45,7 @@ public:
    *  Fetches the number of elements in the vector.
    *  @return The number of elements in the vector.
    */
-  size_t elements(void) const {
+  size_t entries(void) const {
     return elems;
   }
 
@@ -59,7 +62,6 @@ public:
     assert(allocated >= n && "Invalid allocation value.");
     if (elems >= allocated) {
       T *raw = new T[allocated * 2];
-      T *old;
       if (allocated == n) { // we're switching from stack allocation
         for (size_t i = 0; i < elems; i++) {
           raw[i] = stack[i];
@@ -87,12 +89,12 @@ public:
    *  number of elements in the vector.
    *  @return A reference to the element in the vector.
    */
-  T &get(size_t i) const {
+  T &get(size_t i) {
     assert(i < elems && "Attempted to access an element out of bounds.");
     if (allocated < n)
-      return stack[n];
+      return stack[i];
     assert(heap && "Attempted to access NULL heap.");
-    return heap[n];
+    return heap[i];
   }
 };
 
