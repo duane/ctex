@@ -124,7 +124,7 @@ public:
 public:
   class iterator {
   public:
-    HashMap<K, V> map;
+    const HashMap<K, V> *map;
     uint32_t curr_bucket;
     HashEntry *curr_entry;
 
@@ -137,7 +137,7 @@ public:
     }
 
     void operator++(int) {
-      map.advance_iterator(*this);
+      map->advance_iterator(*this);
     }
 
     K &key(void) const {
@@ -150,8 +150,8 @@ public:
       return curr_entry->val;
     }
 
-    iterator(const HashMap<K, V> &map, uint32_t bucket, HashEntry *entry) :
-             map(map), curr_bucket(bucket), curr_entry(entry) {}
+    iterator(const HashMap<K, V> *map_ref, uint32_t bucket, HashEntry *entry) :
+             map(map_ref), curr_bucket(bucket), curr_entry(entry) {}
 
   };
 
@@ -173,14 +173,14 @@ public:
   iterator begin() const {
     if (table_entries == 0)
       return end();
-    iterator iter = iterator(*this, 0, table[0]);
+    iterator iter = iterator(this, 0, table[0]);
     if (!iter.curr_entry)
       advance_iterator(iter);
     return iter;
   }
 
   iterator end() const {
-    return iterator(*this, table_size, NULL);
+    return iterator(this, table_size, NULL);
   }
 
 // Now an explicit deep-copy constructor.
