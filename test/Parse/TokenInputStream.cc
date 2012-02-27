@@ -14,8 +14,10 @@ TEST(TokenInputStreamTest, NonExistentFile) {
 }
 
 #define EXPECT_CMD(stream, tok, state, cc)\
-  ASSERT_EQ(NULL, stream->consume_token(state, tok));\
-  ASSERT_EQ((CommandCode)cc, tok.cmd);
+  ASSERT_NO_THROW({
+  ASSERT_EQ(0, stream->consume_token(state, tok));\
+  ASSERT_EQ((CommandCode)cc, tok.cmd);\
+  })
 
 TEST(TokenInputStreamTest, Empty) {
   UTF8Codec codec;
@@ -25,8 +27,7 @@ TEST(TokenInputStreamTest, Empty) {
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Empty", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;
-  ASSERT_EQ(NULL, input_stream->consume_token(state, token));
-  ASSERT_EQ((CommandCode)CC_EOF, token.cmd);
+  ASSERT_NO_THROW({ASSERT_EQ(1, input_stream->consume_token(state, token));});
 }
 
 TEST(TokenInputStreamTest, Spaces) {
@@ -40,7 +41,7 @@ TEST(TokenInputStreamTest, Spaces) {
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
   EXPECT_CMD(input_stream, token, state, CC_SPACER);
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
-  EXPECT_CMD(input_stream, token, state, CC_EOF);
+  ASSERT_EQ(1, input_stream->consume_token(state, token));
 }
 
 TEST(TokenInputStreamTest, Newlines) {
@@ -60,6 +61,6 @@ TEST(TokenInputStreamTest, Newlines) {
   ASSERT_TRUE(*token.string == par);
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
   EXPECT_CMD(input_stream, token, state, CC_SPACER);
-  EXPECT_CMD(input_stream, token, state, CC_EOF);
+  ASSERT_EQ(1, input_stream->consume_token(state, token));
 }
 
