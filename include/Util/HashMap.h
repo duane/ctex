@@ -19,7 +19,7 @@ public:
     return val;
   }
 
-  bool operator==(const HashUInt &other) {
+  bool operator==(const HashUInt other) {
     return val == other.val;
   }
 
