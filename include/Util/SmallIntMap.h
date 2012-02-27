@@ -17,13 +17,18 @@ private:
   T stack[N];
   bool defined[N];
   HashMap<HashUInt, T> map;
+  uint32_t stack_entries;
 
 public:
-  SmallIntMap(uint32_t map_size=512) : map(map_size) {
+  SmallIntMap(uint32_t map_size=512) : map(map_size), stack_entries(0) {
     memset(defined, 0, sizeof(defined) * sizeof(bool));
   }
 
   ~SmallIntMap(void) {}
+
+  uint32_t entries(void) const {
+    return stack_entries + map.entries();
+  }
 
   uint32_t size(void) const {
     return map.size();
@@ -32,7 +37,10 @@ public:
   void set(uint32_t key, const T &val) {
     if (key < N) {
       stack[key] = val;
-      defined[key] = true;
+      if (!defined[key]) {
+        defined[key] = true;
+        stack_entries += 1;
+      }
     } else {
       HashUInt k = HashUInt(key);
       map.set(k, val);
@@ -119,7 +127,7 @@ public:
   }
 
   explicit SmallIntMap(const SmallIntMap &other) :
-                       map(other.size()) {
+                       map(other.size()), stack_entries(0) {
     memset(defined, 0, sizeof(defined) * sizeof(bool));
     for (iterator iter = other.begin(); iter != other.end(); iter++) {
       uint32_t key = iter.key();
