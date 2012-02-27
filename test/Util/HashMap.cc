@@ -3,42 +3,41 @@
 
 using namespace tex;
 
-class HashInt {
-public:
-  uint32_t val;
-
-  HashInt() : val(0) {}
-  HashInt(uint32_t int_val) : val(int_val) {}
-
-  uint32_t hash(void) const {
-    return val;
-  }
-
-  bool operator==(const HashInt &other) const {
-    return val == other.val;
-  }
-};
-
 TEST(HashMapTest, Empty) {
-  HashMap<HashInt, HashInt> map;
-  HashInt key = HashInt(0);
+  HashMap<HashUInt, HashUInt> map;
+  HashUInt key = HashUInt(0);
   ASSERT_EQ(0u, map.entries());
-  ASSERT_EQ((HashInt*)NULL, map.get(key));
+  ASSERT_EQ((HashUInt*)NULL, map.get(key));
 }
 
 TEST(HashMapTest, SetGet) {
-  HashMap<HashInt, HashInt> map;
-  HashInt key = HashInt(5), val = HashInt(42);
+  HashMap<HashUInt, HashUInt> map;
+  HashUInt key = HashUInt(5), val = HashUInt(42);
   ASSERT_EQ(0u, map.entries());
   ASSERT_EQ(NULL, map.get(key));
   map.set(key, val);
-  HashInt *gotten = map.get(key);
-  ASSERT_NE((HashInt*)NULL, gotten);
-  ASSERT_EQ(val, *gotten);
+  HashUInt *gotten = map.get(key);
+  ASSERT_NE((HashUInt*)NULL, gotten);
+  ASSERT_TRUE(val == *gotten);
 }
 
-TEST(HashMapTest, EmptyCopy) {
-  HashMap<HashUInt, uint32_t> map;
-  HashMap<HashUInt, uint32_t>::iterator begin_iter = map.begin(), end_iter = map.end();
-  ASSERT_EQ(end_iter, begin_iter);
+TEST(HashMapTest, Copy) {
+  HashMap<HashUInt, uint32_t> map(8);
+  ASSERT_EQ(0u, map.entries());
+  ASSERT_EQ(8u, map.size());
+  HashMap<HashUInt, uint32_t> copy(map);
+  ASSERT_EQ(0u, copy.entries());
+  ASSERT_EQ(8u, copy.size());
+}
+
+TEST(HashMapTest, FullCopy) {
+  HashMap<HashUInt, uint32_t> map(8);
+  for (uint32_t i = 0; i < 64; i++) {
+    HashUInt key = i;
+    map.set(key, i);
+  }
+  ASSERT_EQ(64u, map.entries());
+  HashMap<HashUInt, uint32_t> copy(map);
+  ASSERT_EQ(map.entries(), copy.entries());
+  ASSERT_EQ(map.size(), copy.size());
 }

@@ -14,9 +14,9 @@ TEST(TokenInputStreamTest, NonExistentFile) {
 }
 
 #define EXPECT_CMD(stream, tok, state, cc)\
-  ASSERT_NO_THROW({
-  ASSERT_EQ(0, stream->consume_token(state, tok));\
-  ASSERT_EQ((CommandCode)cc, tok.cmd);\
+  ASSERT_NO_THROW({\
+    ASSERT_EQ(0, stream->consume_token(state, tok));\
+    ASSERT_EQ((CommandCode)cc, tok.cmd);\
   })
 
 TEST(TokenInputStreamTest, Empty) {
