@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+
+#include <Render/RenderNode.h>
 #include <State/CommandSequence.h>
 #include <tex/codes.h>
 #include <Type/Font.h>
@@ -43,12 +45,13 @@ private:
 
   // the actual state.
   uint8_t ccode[128];
-
+  
   // CS table state
   HashMap<UString, CommandSequence> cs_map;
   
   SmallVector<Font, 64> fonts;
-  
+
+  RenderNode *hlist_head, *hlist_tail;
 public:
   /** @return The category code of the given character.*/
   uint8_t catcode(unichar uc) const {
@@ -88,6 +91,20 @@ public:
   }
 
   uint32_t load_font(const char *font, sp at);
+
+  void hlist_append(RenderNode &node) {
+    if (!hlist_head)
+      hlist_head = hlist_tail = new RenderNode(node);
+    else {
+      RenderNode *tail = new RenderNode(node);
+      hlist_tail->link = tail;
+      hlist_tail = tail;
+    }
+  }
+
+  RenderNode *head(void) const {
+    return hlist_head;
+  }
 
   static void init(UniquePtr<State> &result);
 };

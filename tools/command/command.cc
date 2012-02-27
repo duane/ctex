@@ -11,17 +11,13 @@ int main(int argc, char **argv) {
   State::init(state);
   UniquePtr<TokenInputStream> cmd_input;
   TokenInputStream::init_from_file("test.tex", new ASCIICodec(), cmd_input);
-  Diag *diag = NULL;
   Token result;
-  while (!(diag = cmd_input->consume_token(state, result))) {
-    if (result.cmd == CC_EOF)
-      return 0;
+  while (!cmd_input->consume_token(state, result)) {
     printf("[%d,", result.cmd);
     if (result.cmd == CC_CS_STRING)
       printf("%llX]", (uint64_t)result.string);
     else
       printf("%X]", result.uc);
   }
-  diag->print();
-  return 1;
+  return 0;
 }

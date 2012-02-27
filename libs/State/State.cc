@@ -27,8 +27,10 @@ State::State(void) {
   Font f;
   fonts.append(f);
 
-  // and load CMR10;
+  // and load computer modern.
   curr_font = load_font("cmr10.tfm", sp(-1000));
+
+  hlist_head = hlist_tail = NULL;
 }
 
 void State::init(UniquePtr<State> &result) {
