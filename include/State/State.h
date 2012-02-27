@@ -3,10 +3,15 @@
 
 #include <stdint.h>
 
-#include <Unicode/Unicode.h>
+
+#include <Render/RenderNode.h>
 #include <State/CommandSequence.h>
 #include <tex/codes.h>
-
+#include <Type/Font.h>
+#include <Unicode/Unicode.h>
+#include <Util/HashMap.h>
+#include <Util/SmallVector.h>
+#include <Util/UniquePtr.h>
 
 namespace tex {
 /** The default hash table size used to store CommandSequences. */
@@ -32,18 +37,21 @@ private:
   State(const State &);
   State &operator=(const State &);
 
+    /** Initializes the state of the tex program to its default state. */
+  State(void);
+
 private:
+  uint32_t curr_font;
+
   // the actual state.
   uint8_t ccode[128];
-
+  
   // CS table state
-  uint32_t cs_entries, cs_size;
-  CommandSequenceEntry **cs_table;
+  HashMap<UString, CommandSequence> cs_map;
   
-private:
-  // internal methods
-  
-  CommandSequenceEntry *find_cs(UString &string, CommandSequenceEntry ***reference) const;
+  SmallVector<Font, 64> fonts;
+
+  RenderNode *hlist_head, *hlist_tail;
 public:
   /** @return The category code of the given character.*/
   uint8_t catcode(unichar uc) const {
@@ -52,29 +60,53 @@ public:
     return ccode[uc];
   }
 
-  /** Initializes the state of the tex program to its default state. */
-  State(void);
-  
-  /** Frees the internal hash table. */
-  ~State(void);
+  uint32_t font(void) const {
+    return curr_font;
+  }
+
+  ~State(void) {
+
+  }
 
   /**
    * Sets or adds a command sequence to the hash table.
    * @param cs The CommandSequence to be added to the table.
    */
-  void set(CommandSequence &cs);
+  void set(CommandSequence &cs) {
+    cs_map.set(cs.string, cs);
+  }
   
   /**
    * Fetches the CommandSequence for the given string.
    * @param string The string of the string to be looked up.
    * @return The CommandSequence found in the table, or NULL if nothing was found.
    */
-  CommandSequence *get(UString &string);
+  CommandSequence *get(UString &string) {
+    return cs_map.get(string);
+  }
   
   /** Returns the number of command sequences currently in the table. */
-  uint32_t entries(void) const {
-    return cs_entries;
+  uint32_t cs_entries(void) const {
+    return cs_map.entries();
   }
+
+  uint32_t load_font(const char *font, sp at);
+
+  void hlist_append(RenderNode &node) {
+    if (!hlist_head)
+      hlist_head = hlist_tail = new RenderNode(node);
+    else {
+      RenderNode *tail = new RenderNode(node);
+      hlist_tail->link = tail;
+      hlist_tail = tail;
+    }
+  }
+
+  RenderNode *head(void) const {
+    return hlist_head;
+  }
+
+  static void init(UniquePtr<State> &result);
 };
 
 }

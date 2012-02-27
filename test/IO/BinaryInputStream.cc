@@ -5,14 +5,13 @@ using namespace tex;
 
 TEST(BinaryInputStreamTest, NonExistent) {
   UniquePtr<BinaryInputStream> stream;
-  Diag *diag = BinaryInputStream::init_from_file("BinaryInputStream/NonExistent", stream);
-  ASSERT_NE((Diag*)NULL, diag);
+  ASSERT_THROW(BinaryInputStream::init_from_file("BinaryInputStream/NonExistent", stream), Diag*);
   ASSERT_FALSE(stream);
 }
 
 TEST(BinaryInputStreamTest, Empty) {
   UniquePtr<BinaryInputStream> stream;
-  ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Empty", stream));
+  ASSERT_NO_THROW(BinaryInputStream::init_from_file("BinaryInputStream/Empty", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
   ASSERT_EQ(0u, stream->size());
@@ -28,7 +27,7 @@ TEST(BinaryInputStreamTest, Empty) {
 
 TEST(BinaryInputStreamTest, Single) {
   UniquePtr<BinaryInputStream> stream;
-  ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte", stream));
+  ASSERT_NO_THROW(BinaryInputStream::init_from_file("BinaryInputStream/Byte", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
   ASSERT_EQ(1u, stream->size());
@@ -49,7 +48,7 @@ TEST(BinaryInputStreamTest, Single) {
 
 TEST(BinaryInputStreamTest, Byte16) {
   UniquePtr<BinaryInputStream> stream;
-  ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte16", stream));
+  ASSERT_NO_THROW(BinaryInputStream::init_from_file("BinaryInputStream/Byte16", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
   ASSERT_EQ(2u, stream->size());
@@ -81,7 +80,7 @@ TEST(BinaryInputStreamTest, Byte16) {
 
 TEST(BinaryInputStreamTest, Byte24) {
   UniquePtr<BinaryInputStream> stream;
-  ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte24", stream));
+  ASSERT_NO_THROW(BinaryInputStream::init_from_file("BinaryInputStream/Byte24", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
   ASSERT_EQ(3u, stream->size());
@@ -119,7 +118,7 @@ TEST(BinaryInputStreamTest, Byte24) {
 
 TEST(BinaryInputStreamTest, Byte32) {
   UniquePtr<BinaryInputStream> stream;
-  ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte32", stream));
+  ASSERT_NO_THROW(BinaryInputStream::init_from_file("BinaryInputStream/Byte32", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
   ASSERT_EQ(4u, stream->size());
@@ -167,7 +166,7 @@ TEST(BinaryInputStreamTest, Byte32) {
 
 TEST(BinaryInputStreamTest, Byte64) {
   UniquePtr<BinaryInputStream> stream;
-  ASSERT_EQ(NULL, BinaryInputStream::init_from_file("BinaryInputStream/Byte64", stream));
+  ASSERT_NO_THROW(BinaryInputStream::init_from_file("BinaryInputStream/Byte64", stream));
   ASSERT_TRUE(stream);
   ASSERT_EQ(0u, stream->offset());
   ASSERT_EQ(8u, stream->size());

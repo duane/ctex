@@ -1,1 +1,1 @@
-add_library(Output DVIWriter.cc)
+add_library(Output DVI.cc DVIWriter.cc)

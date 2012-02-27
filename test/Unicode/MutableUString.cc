@@ -12,8 +12,8 @@ TEST(MutableUStringTest, EmptyInit) {
 TEST(MutableUStringTest, UStringCopy) {
   UString string = UString("Hello");
   MutableUString mut_string = MutableUString(string);
-  ASSERT_TRUE(string.equalq(mut_string));
-  ASSERT_TRUE(mut_string.equalq(string));
+  ASSERT_TRUE(mut_string == string);
+  ASSERT_TRUE(mut_string == string);
   ASSERT_EQ(string.get_length(), mut_string.get_length());
   ASSERT_EQ(string.hash(), mut_string.hash());
 }

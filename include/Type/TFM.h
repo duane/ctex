@@ -6,7 +6,9 @@
 
 #include <Diag/Diag.h>
 #include <IO/BinaryInputStream.h>
+#include <Type/Font.h>
 #include <Util/UniquePtr.h>
+
 
 namespace tex {
 
@@ -167,6 +169,8 @@ public:
    */
   static void init_from_file(const char *path, UniquePtr<TFM> &result);
   
+  void populate_font(Font &font, sp at) const;
+
   /** Deconstructor frees allocated memory. */
   ~TFM(void);
 };

@@ -30,7 +30,7 @@ inline bool is_hex(unichar uc) {
 }
 
 // Handles conversions from hex characters, per TeX@252
-int TokenInputStream::read_translated_char(State &state, unichar &uc) {
+int TokenInputStream::read_translated_char(UniquePtr<State> &state, unichar &uc) {
   // first, read the raw character.
   unichar raw, raw2;
   if (input_stream->consume_char(raw))
@@ -69,11 +69,11 @@ int TokenInputStream::read_translated_char(State &state, unichar &uc) {
   return 0;
 }
 
-int TokenInputStream::read_command_sequence(State &state, UString &result) {
+int TokenInputStream::read_command_sequence(UniquePtr<State> &state, UString &result) {
   MutableUString string;
   unichar uc;
   while (!input_stream->peek_char(uc)) {
-    if (state.catcode(uc) == CC_LETTER) {
+    if (state->catcode(uc) == CC_LETTER) {
       input_stream->consume_char(uc);
       string.add(uc);
     } else {
@@ -84,7 +84,7 @@ int TokenInputStream::read_command_sequence(State &state, UString &result) {
   return 0;
 }
 
-Diag *TokenInputStream::consume_token(State &state, Token &result) {
+int TokenInputStream::consume_token(UniquePtr<State> &state, Token &result) {
   assert(input_stream && "Attempted to read from a NULL stream.");
   
   // first, record line/col of at start of token.
@@ -93,12 +93,10 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
   result.extent = 1;
   const char *name = input_stream->name();
   
-  if (read_translated_char(state, result.uc)) {
-    result.cmd = CC_EOF;  
-    return NULL;
-  }
+  if (read_translated_char(state, result.uc))
+    return 1;
 
-  result.cmd = state.catcode(result.uc);
+  result.cmd = state->catcode(result.uc);
   switch (result.cmd) {
     case CC_IGNORE: {
       // do nothing. Tail call into the function to get next token.
@@ -109,24 +107,24 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
       if (read_command_sequence(state, *string)) {
         size_t cur_line = input_stream->line();
         size_t cur_col = input_stream->col();
-        return new BlameSourceDiag("Error parsing command sequence.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, cur_line, cur_line, cur_col, cur_col));
+        throw new BlameSourceDiag("Error parsing command sequence.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, cur_line, cur_line, cur_col, cur_col));
       }
       result.cmd = CC_CS_STRING;
       result.string = string;
       result.extent = input_stream->col() - result.col + 1;
-      return NULL;
+      return 0;
     }
     case CC_LETTER:
     case CC_OTHER_CHAR: {
       parser_state = STATE_MIDLINE;
-      return NULL;
+      return 0;
     }
     case CC_SPACER: {
       if (parser_state == STATE_SKIP_SPACES || parser_state == STATE_NEWLINE) {
         return consume_token(state, result);
       }
       parser_state = STATE_SKIP_SPACES;
-      return NULL;
+      return 0;
     }
     case CC_CAR_RET: {
       uint32_t p_state = parser_state;
@@ -134,13 +132,13 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
       if (p_state == STATE_NEWLINE) {
         result.cmd = CC_CS_STRING;
         result.string = new UString("par");
-        return NULL;
+        return 0;
       } else if (p_state == STATE_SKIP_SPACES) {
         return consume_token(state, result);
       } else if (p_state == STATE_MIDLINE) {
         result.cmd = CC_SPACER;
         result.uc = ' ';
-        return NULL;
+        return 0;
       }
     }
     case CC_COMMENT: {
@@ -148,18 +146,16 @@ Diag *TokenInputStream::consume_token(State &state, Token &result) {
       parser_state = STATE_NEWLINE;
       unichar uc;
       while (!input_stream->consume_char(uc)) {
-        if (state.catcode(uc) == CC_CAR_RET) // success!
+        if (state->catcode(uc) == CC_CAR_RET) // success!
           return consume_token(state, result);
       }
-      // we've reached EOF.
-      result.cmd = CC_EOF;
-      return NULL;
+      return 1;
     }
     case CC_INVALID:
     default: {
-      return new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, result.line, result.line, result.col, result.col));
+      throw new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, result.line, result.line, result.col, result.col));
     }
   }
   assert(false && "Reached unreachable code! Please fix.");
-  return NULL;
+  return 0;
 }

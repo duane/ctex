@@ -32,7 +32,6 @@ enum {
   // HACK!
   // TODO: Remove these.
   CC_CS_STRING = 16,
-  CC_EOF,
 };
 
 }
