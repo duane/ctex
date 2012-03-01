@@ -18,6 +18,8 @@ namespace tex {
  *  and n in is the size of the stack allocation. If the number of elements
  *  exceeds n, then the vector is copied to memory and proceeds as a normal
  *  vector. T must have a valid copy/assign operator.
+ *
+ *  SmallVector also exposes push/pop functions and can act as a stack.
  */
 template <class T, int n>
 class SmallVector {
@@ -94,6 +96,19 @@ public:
       return stack[i];
     assert(heap && "Attempted to access NULL heap.");
     return heap[i];
+  }
+
+  void push(T &elem) {
+    append(elem);
+  }
+
+  T pop(void) {
+    elems -= 1;
+    return stack[elems];
+  }
+
+  T &head(void) {
+    return stack[elems - 1];
   }
 };
 
