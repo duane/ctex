@@ -5,21 +5,20 @@
 #include <stdint.h>
 
 #include <Diag/Diag.h>
-#include <Render/GLue.h>
+#include <Render/Char.h>
+#include <Render/Box.h>
+#include <Render/Glue.h>
+#include <Render/Penalty.h>
 
 namespace tex {
 
 enum {
   NULL_NODE = 0,
-  HLIST_NODE,
-  VLIST_NODE,
+  HBOX_NODE,
+  VBOX_NODE,
   CHAR_NODE,
   GLUE_NODE,
-};
-
-struct char_node {
-  uint8_t c;
-  uint8_t f;
+  PENALTY_NODE,
 };
 
 class RenderNode {
@@ -30,6 +29,8 @@ public:
   union {
     char_node ch;
     glue_node glue;
+    box_node box;
+    penalty_node penalty;
   };
 public:
   uint32_t type(void) const {
@@ -49,8 +50,25 @@ public:
   static RenderNode glue_rnode(sp width, sp stretch, sp shrink,
                     glue_order stretch_order, glue_order shrink_order) {
     RenderNode node;
+    node.link = NULL;
     node.type_tag = GLUE_NODE;
     node.glue = (glue_node){width, stretch, shrink, stretch_order, shrink_order};
+    return node;
+  }
+
+  static RenderNode empty_hbox(void) {
+    RenderNode node;
+    node.link = NULL;
+    node.type_tag = HBOX_NODE;
+    node.box = empty_box();
+    return node;
+  }
+
+  static RenderNode empty_vbox(void) {
+    RenderNode node;
+    node.link = NULL;
+    node.type_tag = HBOX_NODE;
+    node.box = empty_box();
     return node;
   }
 };

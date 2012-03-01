@@ -8,10 +8,16 @@
 namespace tex {
 
 enum glue_order {
-  GLUE_NORMAL,
+  GLUE_NORMAL = 0,
   GLUE_FIL,
   GLUE_FILL,
   GLUE_FILLL
+};
+
+enum glue_sign {
+  SIGN_NORMAL = 0,
+  SIGN_STRETCH,
+  SIGN_SHRINK,
 };
 
 struct glue_node {
