@@ -32,43 +32,36 @@ public:
     box_node box;
     penalty_node penalty;
   };
-public:
-  uint32_t type(void) const {
-    return type_tag;
-  }
-
-  RenderNode(void) : link(NULL), type_tag(NULL_NODE) {}
-
-  static RenderNode char_rnode(uint8_t uc, uint8_t f) {
-    RenderNode node;
-    node.link = NULL;
-    node.type_tag = CHAR_NODE;
-    node.ch = (char_node){uc, f};
+  static RenderNode *char_rnode(uint8_t uc, uint8_t f) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type_tag = CHAR_NODE;
+    node->ch = (char_node){uc, f};
     return node;
   }
 
-  static RenderNode glue_rnode(sp width, sp stretch, sp shrink,
+  static RenderNode *glue_rnode(sp width, sp stretch, sp shrink,
                     glue_order stretch_order, glue_order shrink_order) {
-    RenderNode node;
-    node.link = NULL;
-    node.type_tag = GLUE_NODE;
-    node.glue = (glue_node){width, stretch, shrink, stretch_order, shrink_order};
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type_tag = GLUE_NODE;
+    node->glue = (glue_node){width, stretch, shrink, stretch_order, shrink_order};
     return node;
   }
 
-  static RenderNode empty_hbox(void) {
-    RenderNode node;
-    node.link = NULL;
-    node.type_tag = HBOX_NODE;
-    node.box = empty_box();
+  static RenderNode *empty_hbox(void) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type_tag = HBOX_NODE;
+    node->box = empty_box();
     return node;
   }
 
-  static RenderNode empty_vbox(void) {
-    RenderNode node;
-    node.link = NULL;
-    node.type_tag = HBOX_NODE;
-    node.box = empty_box();
+  static RenderNode *empty_vbox(void) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type_tag = HBOX_NODE;
+    node->box = empty_box();
     return node;
   }
 };

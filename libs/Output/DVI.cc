@@ -25,9 +25,9 @@ void DVI::render(UniquePtr<State> &state) {
   write_header(writer);
   writer->fnt_def(0, 0, 655360, 655360, "cmr10");
   writer->fnt(0);
-  RenderNode *hlist = state->head();
+  RenderNode *hlist = state->render().head();
   while (hlist) {
-    switch(hlist->type()) {
+    switch(hlist->type_tag) {
       case CHAR_NODE: {
         char_node node = hlist->ch;
         writer->set_char(node.c);

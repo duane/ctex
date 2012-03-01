@@ -16,16 +16,15 @@ void TokenRender::render_input(UniquePtr<State> &state) {
     switch(token.cmd) {
       case CC_LETTER:
       case CC_OTHER_CHAR: {
-        RenderNode node = RenderNode::char_rnode(token.uc, state->font());
-        state->hlist_append(node);
+        state->render().append(RenderNode::char_rnode(token.uc, state->font()));
         break;
       }
       case CC_SPACER: {
         Font &font = state->metrics(state->font());
-        RenderNode node = RenderNode::glue_rnode(
+        RenderNode *node = RenderNode::glue_rnode(
           font.space(), font.space_stretch(), font.space_shrink(),
           GLUE_NORMAL, GLUE_NORMAL);
-        state->hlist_append(node);
+        state->render().append(node);
         break;
       }
       default: {

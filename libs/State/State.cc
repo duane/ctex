@@ -29,8 +29,6 @@ State::State(void) {
 
   // and load computer modern.
   curr_font = load_font("cmr10.tfm", -1000);
-
-  hlist_head = hlist_tail = NULL;
 }
 
 void State::init(UniquePtr<State> &result) {

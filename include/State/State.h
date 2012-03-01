@@ -6,6 +6,7 @@
 
 #include <Render/RenderNode.h>
 #include <State/CommandSequence.h>
+#include <State/RenderState.h>
 #include <tex/codes.h>
 #include <Type/Font.h>
 #include <Unicode/Unicode.h>
@@ -51,7 +52,7 @@ private:
   
   SmallVector<Font, 64> fonts;
 
-  RenderNode *hlist_head, *hlist_tail;
+  RenderState r_state;
 public:
   /** @return The category code of the given character.*/
   uint8_t catcode(unichar uc) const {
@@ -96,18 +97,8 @@ public:
 
   uint32_t load_font(const char *font, int32_t at);
 
-  void hlist_append(RenderNode &node) {
-    if (!hlist_head)
-      hlist_head = hlist_tail = new RenderNode(node);
-    else {
-      RenderNode *tail = new RenderNode(node);
-      hlist_tail->link = tail;
-      hlist_tail = tail;
-    }
-  }
-
-  RenderNode *head(void) const {
-    return hlist_head;
+  RenderState &render(void) {
+    return r_state;
   }
 
   static void init(UniquePtr<State> &result);
