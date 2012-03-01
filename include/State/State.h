@@ -5,6 +5,7 @@
 
 
 #include <Render/RenderNode.h>
+#include <State/Codes.h>
 #include <State/CommandSequence.h>
 #include <State/RenderState.h>
 #include <tex/codes.h>
@@ -13,6 +14,9 @@
 #include <Util/HashMap.h>
 #include <Util/SmallVector.h>
 #include <Util/UniquePtr.h>
+
+
+
 
 namespace tex {
 /** The default hash table size used to store CommandSequences. */
@@ -51,6 +55,8 @@ private:
   HashMap<UString, CommandSequence> cs_map;
   
   SmallVector<Font, 64> fonts;
+
+  Memory tex_mem;
 
   RenderState r_state;
 public:
@@ -99,6 +105,10 @@ public:
 
   RenderState &render(void) {
     return r_state;
+  }
+
+  Memory &mem(void) {
+    return tex_mem;
   }
 
   static void init(UniquePtr<State> &result);

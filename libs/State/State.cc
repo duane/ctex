@@ -29,6 +29,11 @@ State::State(void) {
 
   // and load computer modern.
   curr_font = load_font("cmr10.tfm", -1000);
+
+  // Internal variables
+  tex_mem[LEFT_SKIP_CODE].scaled = scaled(0);
+  tex_mem[RIGHT_SKIP_CODE].scaled = scaled(4736287); // 1 inch.
+  
 }
 
 void State::init(UniquePtr<State> &result) {
