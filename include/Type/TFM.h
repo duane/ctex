@@ -66,6 +66,9 @@ private:
   fix_word *height_table;
   fix_word *depth_table;
   fix_word *italic_table;
+
+  fix_word f_slant, f_space, f_space_stretch, f_space_shrink;
+  fix_word f_x_height, f_quad, f_extra_space;
 private:
   // The default private constructor used in init_from_file
   TFM(void) : width_size(0), height_size(0), depth_size(0), italic_size(0),
@@ -161,6 +164,30 @@ public:
     return italic_table[info.italic_index];
   }
   
+  fix_word space(void) const {
+    return f_space;
+  }
+
+  fix_word space_stretch(void) const {
+    return f_space_stretch;
+  }
+
+  fix_word space_shrink(void) const {
+    return f_space_shrink;
+  }
+
+  fix_word x_height(void) const {
+    return f_x_height;
+  }
+
+  fix_word quad(void) const {
+    return f_quad;
+  }
+
+  fix_word extra_space(void) const {
+    return f_extra_space;
+  }
+
   /**
    *  Initializes a new TFM file from the contents of file at path.
    *  @param path Where to find the TFM file.
@@ -169,7 +196,7 @@ public:
    */
   static void init_from_file(const char *path, UniquePtr<TFM> &result);
   
-  void populate_font(Font &font, sp at) const;
+  void populate_font(Font &font, int32_t at) const;
 
   /** Deconstructor frees allocated memory. */
   ~TFM(void);

@@ -9,75 +9,64 @@ namespace tex {
 
 class sp {
 public:
-  int64_t val;
+  int64_t i64;
   
-  sp(void) : val(0) {}
-  
-  sp(const int32_t &v) : val(v) {
-    assert(v < (1 << 30) && v >= -(1 << 30) && "Assigned overflowed SP.");
-  }
-  
-  sp(const sp &v) : val(v.val) {
-    assert(v.val < (1 << 30) && v.val >= -(1 << 30)
-           && "Assigned overflowed SP.");
-  }
-  
-  sp operator=(const sp &v) {
-    assert(v.val < (1 << 30) && v.val >= -(1 << 30)
-           && "Assigned overflowed SP.");
-    return sp(v.val);
-  }
-  
-  sp operator+(const sp &other) const {
-    return sp(other.val + val);
+  sp operator=(int v) {
+    sp scaled;
+    scaled.i64 = v;
+    return scaled;
   }
 
-  sp operator+(const int32_t &other) const {
-    return sp(val + other);
+  sp operator+(const sp other) const {
+    return (sp){other.i64 + i64};
+  }
+
+  sp operator+(const int32_t other) const {
+    return (sp){i64 + other};
   }
   
-  sp operator-(const sp &other) const {
-    return sp(val - other.val);
+  sp operator-(const sp other) const {
+    return (sp){i64 - other.i64};
   }
   
-  sp operator-(const int32_t &other) const {
-    return sp(val - other);
+  sp operator-(const int32_t other) const {
+    return (sp){i64 - other};
   }
   
-  sp operator*(const sp &other) const {
-    return sp(val * other.val);
+  sp operator*(const sp other) const {
+    return (sp){(i64 * other.i64) >> 16};
   }
 
-  sp operator*(const int32_t &other) const {
-    return sp(val * other);
+  sp operator*(const int32_t other) const {
+    return (sp){i64 * other};
   }
   
-  bool operator<(const int32_t &other) const {
-    return val < other;
+  bool operator<(const int32_t other) const {
+    return i64 < other;
   }
 
-  bool operator<=(const int32_t &other) const {
-    return val <= other;
+  bool operator<=(const int32_t other) const {
+    return i64 <= other;
   }
 
-  bool operator>(const int32_t &other) const {
-    return val > other;
+  bool operator>(const int32_t other) const {
+    return i64 > other;
   }
 
-  bool operator>=(const int32_t &other) const {
-    return val >= other;
+  bool operator>=(const int32_t other) const {
+    return i64 >= other;
   }
 
-  bool operator==(const int32_t &other) const {
-    return val == other;
+  bool operator==(const int32_t other) const {
+    return i64 == other;
   }
 
-  bool operator!=(const int32_t &other) const {
-    return val != other;
+  bool operator!=(const int32_t other) const {
+    return i64 != other;
   }
 
   sp operator-(void) const {
-    return sp(-val);
+    return (sp){-i64};
   }
 
   // taken from TeX@106
@@ -91,7 +80,7 @@ public:
   sp div(int32_t other, sp &remainder) const {
     assert(other && "Attempted to divide SP by zero.");
     bool negative = false;
-    int32_t x = val;
+    int32_t x = i64;
     int32_t result;
     if (other < 0) {
       negative = true;
@@ -100,27 +89,27 @@ public:
     }
     if (x >= 0) {
       result = x / other;
-      remainder = sp(x % other);
+      remainder = (sp){x % other};
     } else {
       result = -((-x) / other);
-      remainder = sp(-((-x) % other));
+      remainder = (sp){-((-x) % other)};
     }
     
     if (negative)
-      remainder.val = -remainder.val;
-    return sp(result);
+      remainder.i64 = -remainder.i64;
+    return (sp){result};
   }
 
   sp xn_over_d(int32_t n, int32_t d) const {
-    return sp(val * n / d);
+    return (sp){i64 * n / d};
   }
 
   std::string string(void) const {
     uint32_t plus_val;
-    if (val < 0)
-      plus_val = val;
+    if (i64 < 0)
+      plus_val = i64;
     else
-      plus_val = -val;
+      plus_val = -i64;
     char left_str[6] = "00000";
     snprintf(left_str, sizeof(left_str), "%d", plus_val >> 16);
     char right_str[11] = "0000000000";
@@ -131,7 +120,7 @@ public:
       right = right & 0xffff;
     }
     std::string res;
-    if (val < 0)
+    if (i64 < 0)
       res += "-";
     res += left_str;
     res += ".";
@@ -139,6 +128,11 @@ public:
     return res;
   }
 };
+
+static inline sp scaled(int32_t v) {
+  sp result = (sp){v};
+  return result;
+}
 
 }
 

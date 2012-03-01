@@ -42,7 +42,7 @@ char *TFM::create_fix_word_string(int32_t fix_word) {
 }
 
 static inline sp sp_from_fixed(const TFM::fix_word f) {
-  return sp(f >> 4);
+  return scaled(f >> 4);
 }
 
 // This is one ugly piece of code.
@@ -60,55 +60,10 @@ void TFM::read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, UniqueP
   if (stream->read_uint32((uint32_t&)tfm->design_size))
     assert(false && "Unexpected EOF! Internal state error.");
   
-  if (lh == 2)
-    return;
-    
-  if (lh < 11)
-    throw new GenericDiag("TFM header is a bad size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
-  
-  uint8_t char_code_size;
-  if (stream->read_uint8(char_code_size))
-    assert(false && "Unexpected EOF! Internal state error.");
-  
-  if (char_code_size > 39)
-    throw new GenericDiag("TFM header has a bad character coding convention string length byte.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
-  
-  if (stream->read_bytes((uint8_t*)tfm->char_code_conv, 39))
-    assert(false && "Unexpected EOF! Internal state error.");
-  
-  tfm->char_code_conv[char_code_size] = '\0';
-  
-  if (lh == 11)
-    return;
-  
-  if (lh < 16)
-    throw new GenericDiag("TFM header is a bad size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
-  
-  uint8_t font_id_size;
-  if (stream->read_uint8(font_id_size))
-    assert(false && "Unexpected EOF! Internal state error.");
-  
-  if (font_id_size > 19)
-    throw new GenericDiag("TFM header has bad font identiifcation string length byte.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
-
-  if (stream->read_bytes((uint8_t*)tfm->font_id, 19))
-    assert(false && "Unexpected EOF! Internal state error.");
-  
-  tfm->font_id[font_id_size] = '\0';
-  
-  if (lh == 16)
-    return;
-  
-  uint32_t seven_face;
-  if (stream->read_uint32(seven_face))
-    assert(false && "Unexpected EOF! Internal state error.");
-  
-  tfm->seven_bit_safe_flag = seven_face & 0xFF;
-  tfm->font_face = seven_face >> 24;
-  
-  if (lh > 17) {
-    stream->seek(stream->offset() + (lh - 17) * 4);
+  if (lh > 2) {
+    stream->seek(stream->offset() + (lh - 2) * 4);
   }
+
 }
 
 void TFM::read_char_info(UniquePtr<BinaryInputStream> &stream, UniquePtr<TFM> &tfm) {
@@ -199,7 +154,7 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   UniquePtr<TFM> tfm;
   tfm.reset(new TFM());
 
-    tfm->width_size = nw;
+  tfm->width_size = nw;
   tfm->height_size = nh;
   tfm->depth_size = nd;
   tfm->italic_size = ni;
@@ -224,26 +179,52 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   read_fix_word_table(stream, tfm->height_table, tfm->height_size);
   read_fix_word_table(stream, tfm->depth_table, tfm->depth_size);
   read_fix_word_table(stream, tfm->italic_table, tfm->italic_size);
-  
+
+  // skip to parameters.
+  stream->seek(stream->offset() + (nl + nk + ne) * 4);
+
+  // now read parameters.
+  if (np < 7)
+    throw new GenericDiag("TFM file must have at least seven parameters.",
+                          DIAG_TFM_PARSE_ERR, BLAME_HERE);
+
+  if (stream->read_uint32((uint32_t&)tfm->f_slant)
+      || stream->read_uint32((uint32_t&)tfm->f_space)
+      || stream->read_uint32((uint32_t&)tfm->f_space_stretch)
+      || stream->read_uint32((uint32_t&)tfm->f_space_shrink)
+      || stream->read_uint32((uint32_t&)tfm->f_x_height)
+      || stream->read_uint32((uint32_t&)tfm->f_quad)
+      || stream->read_uint32((uint32_t&)tfm->f_extra_space))
+    assert(false && "Internal error. input stream ended before promised.");
+  // skip the rest of np bytes.
+  assert(stream->offset() == stream->size() && "More to file than expected.");
+
   result.reset(tfm.take());
 }
 
-void TFM::populate_font(Font &font, sp at) const {
+void TFM::populate_font(Font &font, int32_t at) const {
   sp z = sp_from_fixed(design_size);
   if (at != -1000) {
     if (at > 0)
-      z = at;
+      z = scaled(at);
     else
-      z = z.xn_over_d(-at.val, 1000);
+      z = z.xn_over_d(at, -1000);
   }
   for (unsigned c = char_lower; c <= char_upper; c++) {
     CharInfo info;
-    info.width = sp_from_fixed(width(c));
-    info.height = sp_from_fixed(height(c));
-    info.depth = sp_from_fixed(depth(c));
-    info.italic = sp_from_fixed(italic(c));
+    info.width = sp_from_fixed(width(c)) * z;
+    info.height = sp_from_fixed(height(c)) * z;
+    info.depth = sp_from_fixed(depth(c)) * z;
+    info.italic = sp_from_fixed(italic(c)) * z;
     font.set(c, info);
   }
+
+  font.set_space(sp_from_fixed(f_space) * z);
+  font.set_space_stretch(sp_from_fixed(f_space_stretch) * z);
+  font.set_space_shrink(sp_from_fixed(f_space_shrink) * z);
+  font.set_x_height(sp_from_fixed(f_x_height) * z);
+  font.set_quad(sp_from_fixed(f_quad) * z);
+  font.set_extra_space(sp_from_fixed(f_extra_space) * z);
 }
 
 TFM::~TFM(void) {

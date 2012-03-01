@@ -29,8 +29,13 @@ void DVI::render(UniquePtr<State> &state) {
   while (hlist) {
     switch(hlist->type()) {
       case CHAR_NODE: {
-        char_node node = hlist->c_node();
+        char_node node = hlist->ch;
         writer->set_char(node.c);
+        break;
+      }
+      case GLUE_NODE: {
+        glue_node glue = hlist->glue;
+        writer->right(glue.width.i64);
         break;
       }
       default: {

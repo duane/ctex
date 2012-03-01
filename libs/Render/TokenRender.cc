@@ -20,6 +20,14 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         state->hlist_append(node);
         break;
       }
+      case CC_SPACER: {
+        Font &font = state->metrics(state->font());
+        RenderNode node = RenderNode::glue_rnode(
+          font.space(), font.space_stretch(), font.space_shrink(),
+          GLUE_NORMAL, GLUE_NORMAL);
+        state->hlist_append(node);
+        break;
+      }
       default: {
         printf("%d\n", token.cmd);
         throw new BlameSourceDiag("Command code not implemented yet.",

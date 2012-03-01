@@ -42,6 +42,18 @@ static inline void print_tfm(UniquePtr<TFM> &tfm) {
   printf("\n\tCharacter convention: %s\n", tfm->character_convention());
   printf("\n\tFont face: ");
   print_face_info(tfm->face());
+  printf("\n\tSpace: ");
+  print_fix_word(tfm->space());
+  printf("\n\tStretch: ");
+  print_fix_word(tfm->space_stretch());
+  printf("\n\tShrink: ");
+  print_fix_word(tfm->space_shrink());
+  printf("\n\tx-height: ");
+  print_fix_word(tfm->x_height());
+  printf("\n\tem: ");
+  print_fix_word(tfm->quad());
+  printf("\n\tExtra space: ");
+  print_fix_word(tfm->extra_space());
   printf("\n");
   for (unsigned c = tfm->lower_char(); c <= tfm->upper_char(); c++) {
     printf("\n\tCharacter code %2X", c);

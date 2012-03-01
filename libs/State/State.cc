@@ -28,7 +28,7 @@ State::State(void) {
   fonts.append(f);
 
   // and load computer modern.
-  curr_font = load_font("cmr10.tfm", sp(-1000));
+  curr_font = load_font("cmr10.tfm", -1000);
 
   hlist_head = hlist_tail = NULL;
 }
@@ -37,7 +37,7 @@ void State::init(UniquePtr<State> &result) {
   result.reset(new State());
 }
 
-uint32_t State::load_font(const char *path, sp at) {
+uint32_t State::load_font(const char *path, int32_t at) {
   UniquePtr<TFM> tfm;
   TFM::init_from_file(path, tfm);
   uint32_t f = fonts.entries();

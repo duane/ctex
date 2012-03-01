@@ -17,6 +17,8 @@ struct CharInfo {
 class Font {
 private:
   SmallIntMap<CharInfo, 256> char_map;
+  sp f_space, f_space_stretch, f_space_shrink;
+  sp f_x_height, f_quad, f_extra_space;
 
 public:
   // Copy/assign allowed
@@ -35,6 +37,54 @@ public:
 
   void set(unichar uc, const CharInfo &info) {
     char_map.set(uc, info);
+  }
+
+  void set_space(sp space) {
+    f_space = space;
+  }
+
+  sp space(void) const {
+    return f_space;
+  }
+
+  void set_space_stretch(sp space_stretch) {
+    f_space_stretch = space_stretch;
+  }
+
+  sp space_stretch(void) const {
+    return f_space_stretch;
+  }
+
+  void set_space_shrink(sp space_shrink) {
+    f_space_shrink = space_shrink;
+  }
+
+  sp space_shrink(void) const {
+    return f_space_shrink;
+  }
+
+  void set_x_height(sp x_height) {
+    f_x_height = x_height;
+  }
+
+  sp x_height(void) const {
+    return f_x_height;
+  }
+
+  void set_quad(sp quad) {
+    f_quad = quad;
+  }
+
+  sp quad(void) const {
+    return f_quad;
+  }
+
+  void set_extra_space(sp extra_space) {
+    f_extra_space = extra_space;
+  }
+
+  sp extra_space(void) const {
+    return f_extra_space;
   }
 
   const CharInfo *get(unichar uc) const {

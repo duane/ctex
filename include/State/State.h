@@ -64,6 +64,10 @@ public:
     return curr_font;
   }
 
+  Font &metrics(const uint32_t f) {
+    return fonts.get(f);
+  }
+
   ~State(void) {
 
   }
@@ -90,7 +94,7 @@ public:
     return cs_map.entries();
   }
 
-  uint32_t load_font(const char *font, sp at);
+  uint32_t load_font(const char *font, int32_t at);
 
   void hlist_append(RenderNode &node) {
     if (!hlist_head)
