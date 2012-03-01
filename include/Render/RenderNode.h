@@ -25,7 +25,7 @@ class RenderNode {
 // allow copy/assign.
 public:
   RenderNode *link;
-  uint32_t type_tag;
+  uint32_t type;
   union {
     char_node ch;
     glue_node glue;
@@ -35,7 +35,7 @@ public:
   static RenderNode *char_rnode(uint8_t uc, uint8_t f) {
     RenderNode *node = new RenderNode;
     node->link = NULL;
-    node->type_tag = CHAR_NODE;
+    node->type = CHAR_NODE;
     node->ch = (char_node){uc, f};
     return node;
   }
@@ -44,7 +44,7 @@ public:
                     glue_order stretch_order, glue_order shrink_order) {
     RenderNode *node = new RenderNode;
     node->link = NULL;
-    node->type_tag = GLUE_NODE;
+    node->type = GLUE_NODE;
     node->glue = (glue_node){width, stretch, shrink, stretch_order, shrink_order};
     return node;
   }
@@ -52,7 +52,7 @@ public:
   static RenderNode *empty_hbox(void) {
     RenderNode *node = new RenderNode;
     node->link = NULL;
-    node->type_tag = HBOX_NODE;
+    node->type = HBOX_NODE;
     node->box = empty_box();
     return node;
   }
@@ -60,7 +60,7 @@ public:
   static RenderNode *empty_vbox(void) {
     RenderNode *node = new RenderNode;
     node->link = NULL;
-    node->type_tag = HBOX_NODE;
+    node->type = HBOX_NODE;
     node->box = empty_box();
     return node;
   }

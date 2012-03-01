@@ -27,7 +27,7 @@ void DVI::render(UniquePtr<State> &state) {
   writer->fnt(0);
   RenderNode *hlist = state->render().head();
   while (hlist) {
-    switch(hlist->type_tag) {
+    switch(hlist->type) {
       case CHAR_NODE: {
         char_node node = hlist->ch;
         writer->set_char(node.c);
