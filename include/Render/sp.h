@@ -42,28 +42,60 @@ public:
     return (sp){i64 * other};
   }
   
+  void operator+=(const int32_t other) {
+    i64 += other;
+  }
+
+  void operator+=(const sp other) {
+    i64 += other.i64;
+  }
+
   bool operator<(const int32_t other) const {
     return i64 < other;
+  }
+
+  bool operator<(const sp other) const {
+    return i64 < other.i64;
   }
 
   bool operator<=(const int32_t other) const {
     return i64 <= other;
   }
 
+  bool operator<=(const sp other) const {
+    return i64 <= other.i64;
+  }
+
   bool operator>(const int32_t other) const {
     return i64 > other;
+  }
+
+  bool operator>(const sp other) const {
+    return i64 > other.i64;
   }
 
   bool operator>=(const int32_t other) const {
     return i64 >= other;
   }
 
+  bool operator>=(const sp other) const {
+    return i64 >= other.i64;
+  }
+
   bool operator==(const int32_t other) const {
     return i64 == other;
   }
 
+  bool operator==(const sp other) const {
+    return i64 == other.i64;
+  }
+
   bool operator!=(const int32_t other) const {
     return i64 != other;
+  }
+
+  bool operator!=(const sp other) const {
+    return i64 != other.i64;
   }
 
   sp operator-(void) const {
@@ -75,7 +107,6 @@ public:
     sp remainder;
     return div(other, remainder);
   }
-
 
   // taken from TeX@106
   sp div(int32_t other, sp &remainder) const {
@@ -133,6 +164,10 @@ public:
 static inline sp scaled(int32_t v) {
   sp result = (sp){v};
   return result;
+}
+
+static inline sp scaledf(float f) {
+  return scaled((int32_t)(f * 0x10000));
 }
 
 }

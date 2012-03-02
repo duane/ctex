@@ -7,6 +7,8 @@
 
 namespace tex {
 
+typedef float glue_ratio;
+
 enum glue_order {
   GLUE_NORMAL = 0,
   GLUE_FIL,

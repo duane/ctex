@@ -38,6 +38,9 @@ public:
   };
 
   sp width(UniquePtr<State> &state) const;
+  sp height(UniquePtr<State> &state) const;
+  sp depth(UniquePtr<State> &state) const;
+  sp shift(UniquePtr<State> &state) const;
 
   static RenderNode *char_rnode(uint8_t uc, uint8_t f) {
     RenderNode *node = new RenderNode;
@@ -52,7 +55,8 @@ public:
     RenderNode *node = new RenderNode;
     node->link = NULL;
     node->type = GLUE_NODE;
-    node->glue = (glue_node){width, stretch, shrink, stretch_order, shrink_order};
+    node->glue = (glue_node){width, stretch, shrink,
+                             stretch_order, shrink_order};
     return node;
   }
 
@@ -64,11 +68,27 @@ public:
     return node;
   }
 
+  static RenderNode *hbox(box_node &box) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type = HBOX_NODE;
+    node->box = box;
+    return node;
+  }
+
   static RenderNode *empty_vbox(void) {
     RenderNode *node = new RenderNode;
     node->link = NULL;
     node->type = HBOX_NODE;
     node->box = empty_box();
+    return node;
+  }
+
+  static RenderNode *vbox(box_node &box) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type = VBOX_NODE;
+    node->box = box;
     return node;
   }
 };

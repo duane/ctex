@@ -87,7 +87,13 @@ public:
     return f_extra_space;
   }
 
-  const CharInfo *get(unichar uc) const {
+  const CharInfo &get(unichar uc) const {
+    const CharInfo *info = char_map.get(uc);
+    assert(info && "Attempted to get char which does not exist in font f.");
+    return *info;
+  }
+
+  const CharInfo *get_maybe(unichar uc) const {
     return char_map.get(uc);
   }
 };
