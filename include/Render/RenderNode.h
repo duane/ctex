@@ -9,8 +9,12 @@
 #include <Render/Box.h>
 #include <Render/Glue.h>
 #include <Render/Penalty.h>
+#include <Type/Font.h>
+#include <Util/UniquePtr.h>
 
 namespace tex {
+
+class State;
 
 enum {
   NULL_NODE = 0,
@@ -32,6 +36,9 @@ public:
     box_node box;
     penalty_node penalty;
   };
+
+  sp width(UniquePtr<State> &state) const;
+
   static RenderNode *char_rnode(uint8_t uc, uint8_t f) {
     RenderNode *node = new RenderNode;
     node->link = NULL;

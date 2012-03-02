@@ -30,7 +30,7 @@ void DVI::render(UniquePtr<State> &state) {
     switch(hlist->type) {
       case CHAR_NODE: {
         char_node node = hlist->ch;
-        writer->set_char(node.c);
+        writer->set_char(node.ch);
         break;
       }
       case GLUE_NODE: {

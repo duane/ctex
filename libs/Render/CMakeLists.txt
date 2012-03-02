@@ -1,1 +1,1 @@
-add_library(Render TokenRender.cc)
+add_library(Render RenderNode.cc TokenRender.cc)

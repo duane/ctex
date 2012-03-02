@@ -16,9 +16,8 @@
 #include <Util/UniquePtr.h>
 
 
-
-
 namespace tex {
+
 /** The default hash table size used to store CommandSequences. */
 const uint32_t CS_TABLE_SIZE = 4098;
 
@@ -107,8 +106,8 @@ public:
     return r_state;
   }
 
-  Memory &mem(void) {
-    return tex_mem;
+  word &mem(uint32_t code) {
+    return tex_mem[code];
   }
 
   static void init(UniquePtr<State> &result);

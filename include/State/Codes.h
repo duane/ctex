@@ -6,6 +6,7 @@
 namespace tex {
 
 enum {
+  PRETOLERANCE_CODE,
   LEFT_SKIP_CODE,
   RIGHT_SKIP_CODE,
   MAX_INTERNAL_CODE,

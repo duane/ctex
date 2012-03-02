@@ -6,8 +6,8 @@
 namespace tex {
 
 struct char_node {
-  uint8_t c;
-  uint8_t f;
+  uint8_t ch;
+  uint8_t font;
 };
 
 }

@@ -1,6 +1,7 @@
 #ifndef __INCLUDE_RENDER_SP_H__
 #define __INCLUDE_RENDER_SP_H__
 
+#include <cassert>
 #include <stdint.h>
 
 #include <string>
