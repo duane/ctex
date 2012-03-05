@@ -1,5 +1,6 @@
 #include <State/State.h>
 #include <Type/TFM.h>
+#include <Render/Units.h>
 
 using namespace tex;
 
@@ -32,21 +33,27 @@ State::State(void) {
 
   // Internal variables
   tex_mem[LEFT_SKIP_CODE].scaled = scaled(0);
-  tex_mem[RIGHT_SKIP_CODE].scaled = scaled(4736287); // 1 inch.
-  
+  tex_mem[RIGHT_SKIP_CODE].scaled = scaled(0);
+  tex_mem[HSIZE_CODE].scaled = scaled_from(0x67FFF, UNIT_IN); // 6.5in
+  tex_mem[VSIZE_CODE].scaled = scaled_from(0x90000, UNIT_IN); // 9in
+  tex_mem[BASELINE_SKIP_CODE].scaled = scaled(0xC0000);
+
+  // enter vmode.
+  r_state.set_mode(VMODE);
+
+  // initialize primitives.
+  primitive(UString("par"), CC_PAR_END, (word){0});
 }
 
 void State::init(UniquePtr<State> &result) {
-  result.reset(new State());
+    result.reset(new State());
 }
 
 uint32_t State::load_font(const char *path, int32_t at) {
-  UniquePtr<TFM> tfm;
-  TFM::init_from_file(path, tfm);
   uint32_t f = fonts.entries();
   Font empty_font;
   fonts.append(empty_font);
   Font &font = fonts.get(f);
-  tfm->populate_font(font, at);
+  TFM::load_font(path, font, at);
   return f;
 }

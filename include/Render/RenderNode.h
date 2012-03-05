@@ -60,6 +60,14 @@ public:
     return node;
   }
 
+  static RenderNode *new_glue(glue_node &g) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type = GLUE_NODE;
+    node->glue = g;
+    return node;
+  }
+
   static RenderNode *empty_hbox(void) {
     RenderNode *node = new RenderNode;
     node->link = NULL;

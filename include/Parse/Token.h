@@ -12,17 +12,19 @@ typedef struct {
   /** Where the catcode/command type is stored. */
   CommandCode cmd;
   /** Line of token */
-  size_t line;
+  uint32_t line;
   /** Column of beginning of token. */
-  size_t col;
+  uint32_t col;
   
   /** Extent in columns of the token. */
-  size_t extent;
+  uint32_t extent;
   union {
     /** For most tokens, the single character contains the information needed. */
     unichar uc;
+    /** For parsed integers. */
+    int64_t i64;
     /** For command sequences, the string holds the command sequence given. */
-    UString *string;
+    CommandSequence *cs;
   };
 } Token;
 

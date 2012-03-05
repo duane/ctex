@@ -139,9 +139,9 @@ public:
   std::string string(void) const {
     uint32_t plus_val;
     if (i64 < 0)
-      plus_val = i64;
-    else
       plus_val = -i64;
+    else
+      plus_val = i64;
     char left_str[6] = "00000";
     snprintf(left_str, sizeof(left_str), "%d", plus_val >> 16);
     char right_str[11] = "0000000000";

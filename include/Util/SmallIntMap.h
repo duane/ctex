@@ -116,6 +116,7 @@ public:
     assert(iter != end_iter &&
     "Attempted to advance iterator already at end.");
     if (iter.curr_bucket < N) {
+      iter.curr_bucket += 1;
       while (!defined[iter.curr_bucket]) {
         iter.curr_bucket += 1;
         if (iter.curr_bucket >= N)

@@ -4,9 +4,11 @@
 
 using namespace tex;
 
-RenderNode *hpack(UniquePtr<State> &state,
+RenderNode *tex::hpack(UniquePtr<State> &state,
                   RenderNode *hlist, sp width, pack_type type) {
-  box_node hbox;
+  RenderNode *result_node = RenderNode::empty_hbox();
+  box_node &hbox = result_node->box;
+  hbox.list = hlist;
   RenderNode *p;
   p = hlist;
   sp total_stretch[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
@@ -50,6 +52,7 @@ RenderNode *hpack(UniquePtr<State> &state,
       default:
         assert(false && "Attempted to pack unknown RenderNode type.");
     }
+    p = p->link;
   }
 
   // hbox.width is now the "natural" width of the box
@@ -63,7 +66,7 @@ RenderNode *hpack(UniquePtr<State> &state,
     hbox.order = GLUE_NORMAL;
     hbox.sign = SIGN_NORMAL;
     hbox.g_ratio = 0.0;
-    return RenderNode::hbox(hbox);
+    return result_node;
   }
   if (delta_width < 0) { // shrink
     glue_order ord;
@@ -80,12 +83,12 @@ RenderNode *hpack(UniquePtr<State> &state,
       hbox.order = GLUE_NORMAL;
       hbox.sign = SIGN_NORMAL;
       hbox.g_ratio = 0.0;
-      return RenderNode::hbox(hbox);
+      return result_node;
     } else {
       hbox.order = ord;
       hbox.sign = SIGN_SHRINK;
       hbox.g_ratio = (float)(-delta_width.i64)/total_shrink[ord].i64;
-      return RenderNode::hbox(hbox);
+      return result_node;
     }
   } else { // stretch
     glue_order ord;
@@ -102,12 +105,12 @@ RenderNode *hpack(UniquePtr<State> &state,
       hbox.order = GLUE_NORMAL;
       hbox.sign = SIGN_NORMAL;
       hbox.g_ratio = 0.0;
-      return RenderNode::hbox(hbox);
+      return result_node;
     } else {
       hbox.order = ord;
       hbox.sign = SIGN_STRETCH;
       hbox.g_ratio = (float)delta_width.i64/total_shrink[ord].i64 ;
-      return RenderNode::hbox(hbox);
+      return result_node;
     }
     assert(false && "Unreachable! please fix.");
     return NULL;

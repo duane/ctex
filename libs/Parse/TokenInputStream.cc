@@ -84,61 +84,79 @@ int TokenInputStream::read_command_sequence(UniquePtr<State> &state, UString &re
   return 0;
 }
 
-int TokenInputStream::consume_token(UniquePtr<State> &state, Token &result) {
+int TokenInputStream::peek_token(UniquePtr<State> &state, Token &result) {
   assert(input_stream && "Attempted to read from a NULL stream.");
   
+  // If we've already peeked at this token, return it.
+  if (peeked) {
+    result = peek_tok;
+    return 0;
+  }
+
+
   // first, record line/col of at start of token.
-  result.line = input_stream->line();
-  result.col = input_stream->col();
-  result.extent = 1;
+  peek_tok.line = input_stream->line();
+  peek_tok.col = input_stream->col();
+  peek_tok.extent = 1;
   const char *name = input_stream->name();
   
-  if (read_translated_char(state, result.uc))
+  if (read_translated_char(state, peek_tok.uc))
     return 1;
 
-  result.cmd = state->catcode(result.uc);
-  switch (result.cmd) {
+  peek_tok.cmd = state->catcode(peek_tok.uc);
+  switch (peek_tok.cmd) {
     case CC_IGNORE: {
       // do nothing. Tail call into the function to get next token.
-      return consume_token(state, result);
+      return peek_token(state, result);
     }
     case CC_ESCAPE: {
       UString *string = new UString();
+      size_t cur_line = input_stream->line();
+      size_t cur_col = input_stream->col();
       if (read_command_sequence(state, *string)) {
-        size_t cur_line = input_stream->line();
-        size_t cur_col = input_stream->col();
         throw new BlameSourceDiag("Error parsing command sequence.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, cur_line, cur_line, cur_col, cur_col));
       }
-      result.cmd = CC_CS_STRING;
-      result.string = string;
-      result.extent = input_stream->col() - result.col + 1;
-      return 0;
+
+      // now look up CS in table
+      CommandSequence *cs = state->get(*string);
+      if (!cs)
+        throw new BlameSourceDiag("Command sequence not found!.",
+                                  DIAG_PARSE_ERR, BLAME_HERE,
+                                  BlameSource(name, cur_line, cur_line,
+                                              cur_col, input_stream->col()));
+
+      peek_tok.cmd = cs->cmd;
+      peek_tok.cs = cs;
+      peek_tok.extent = input_stream->col() - peek_tok.col + 1;
+      break;
     }
     case CC_LETTER:
     case CC_OTHER_CHAR: {
       parser_state = STATE_MIDLINE;
-      return 0;
+      break;
     }
     case CC_SPACER: {
       if (parser_state == STATE_SKIP_SPACES || parser_state == STATE_NEWLINE) {
-        return consume_token(state, result);
+        return peek_token(state, result);
       }
       parser_state = STATE_SKIP_SPACES;
-      return 0;
+      break;
     }
     case CC_CAR_RET: {
       uint32_t p_state = parser_state;
       parser_state = STATE_NEWLINE;
       if (p_state == STATE_NEWLINE) {
-        result.cmd = CC_CS_STRING;
-        result.string = new UString("par");
-        return 0;
+        CommandSequence *par = state->get(UString("par"));
+        assert(par && "\\par is missing from CS table.");
+        peek_tok.cmd = CC_PAR_END;
+        peek_tok.cs = par;
+        break;
       } else if (p_state == STATE_SKIP_SPACES) {
-        return consume_token(state, result);
+        return peek_token(state, result);
       } else if (p_state == STATE_MIDLINE) {
-        result.cmd = CC_SPACER;
-        result.uc = ' ';
-        return 0;
+        peek_tok.cmd = CC_SPACER;
+        peek_tok.uc = ' ';
+        break;
       }
     }
     case CC_COMMENT: {
@@ -147,15 +165,23 @@ int TokenInputStream::consume_token(UniquePtr<State> &state, Token &result) {
       unichar uc;
       while (!input_stream->consume_char(uc)) {
         if (state->catcode(uc) == CC_CAR_RET) // success!
-          return consume_token(state, result);
+          return peek_token(state, result);
       }
+      // Whoops, reached EOF.
       return 1;
     }
     case CC_INVALID:
     default: {
-      throw new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, result.line, result.line, result.col, result.col));
+      throw new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, peek_tok.line, peek_tok.line, peek_tok.col, peek_tok.col));
     }
   }
-  assert(false && "Reached unreachable code! Please fix.");
+  peeked = true;
+  result = peek_tok;
   return 0;
+}
+
+int TokenInputStream::consume_token(UniquePtr<State> &state, Token &result) {
+  int status = peek_token(state, result);
+  peeked = false;
+  return status;
 }

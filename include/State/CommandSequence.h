@@ -1,6 +1,7 @@
 #ifndef __INCLUDE_STATE_COMMANDSEQUENCE_H__
 #define __INCLUDE_STATE_COMMANDSEQUENCE_H__
 
+#include <State/Word.h>
 #include <Unicode/UString.h>
 
 namespace tex {
@@ -14,6 +15,8 @@ typedef struct {
   UString string;
   /** The command code classifying the command sequence. */
   CommandCode cmd;
+  /** an operand to the sequence. */
+  word operand;
 } CommandSequence;
 
 }

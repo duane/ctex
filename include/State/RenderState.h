@@ -94,6 +94,7 @@ public:
     } else {
       cur_frame.tail->link = node;
       cur_frame.tail = node;
+      cur_frame.tail->link = NULL;
     }
   }
 

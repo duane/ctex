@@ -39,7 +39,9 @@ void DVIWriter::put_char(uint32_t c) {
 }
 
 void DVIWriter::put_rule(int32_t a, int32_t b) {
-
+  output->write_uint8(137);
+  output->write_uint32(a);
+  output->write_uint32(b);
 }
 
 void DVIWriter::nop() {

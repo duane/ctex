@@ -91,7 +91,7 @@ public:
    * @param string The string of the string to be looked up.
    * @return The CommandSequence found in the table, or NULL if nothing was found.
    */
-  CommandSequence *get(UString &string) {
+  CommandSequence *get(UString string) {
     return cs_map.get(string);
   }
   
@@ -108,6 +108,11 @@ public:
 
   word &mem(uint32_t code) {
     return tex_mem[code];
+  }
+
+  void primitive(UString name, CommandCode cmd, word operand) {
+    CommandSequence cs = {name, cmd, operand};
+    cs_map.set(name, cs);
   }
 
   static void init(UniquePtr<State> &result);

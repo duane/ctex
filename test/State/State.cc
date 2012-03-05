@@ -7,9 +7,6 @@ TEST(StateTest, EmptyState) {
   UniquePtr<State> state;
   State::init(state);
 
-  // Should have an empty table.
-  ASSERT_EQ(0u, state->cs_entries());
-  
   // Should have catcodes set correctly for characters.
   ASSERT_EQ((uint8_t)CC_IGNORE, state->catcode(0));
   ASSERT_EQ((uint8_t)CC_CAR_RET, state->catcode('\n'));
@@ -19,13 +16,9 @@ TEST(StateTest, EmptyState) {
   ASSERT_EQ((uint8_t)CC_INVALID, state->catcode(127));
 }
 
-TEST(StateTest, Set) {
+/*TEST(StateTest, Set) {
   UniquePtr<State> state;
   State::init(state);
-  ASSERT_EQ(0u, state->cs_entries());
-  CommandSequence cs = {UString("hello"), CC_CS_STRING};
-  state->set(cs);
-  ASSERT_EQ(1u, state->cs_entries());
 }
 
 TEST(StateTest, SetGet) {
@@ -34,12 +27,12 @@ TEST(StateTest, SetGet) {
   ASSERT_TRUE(state);
   ASSERT_EQ(0u, state->cs_entries());
   UString str = UString("hello");
-  CommandSequence cs = {str, CC_CS_STRING};
-  state->set(cs);
+  state->primitive(str, 42, (word){83});
   ASSERT_EQ(1u, state->cs_entries());
   CommandSequence *p_cs = state->get(str);
   ASSERT_NE((CommandSequence*)NULL, p_cs);
-  ASSERT_TRUE(p_cs->string == str);
-  ASSERT_EQ(cs.cmd, p_cs->cmd);
-}
+  ASSERT_TRUE(str == p_cs->string);
+  ASSERT_EQ(42u, p_cs->cmd);
+  ASSERT_TRUE((word){83} == p_cs->operand);
+}*/
 

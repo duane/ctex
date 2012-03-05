@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include <Type/TFM.h>
+#include <Type/Font.h>
 
 using namespace tex;
 
@@ -39,10 +40,6 @@ char *TFM::create_fix_word_string(int32_t fix_word) {
   else
     snprintf(str, string_size, "%s.%s", left_str, right_str);
   return str;
-}
-
-static inline sp sp_from_fixed(const TFM::fix_word f) {
-  return scaled(f >> 4);
 }
 
 // This is one ugly piece of code.
@@ -172,6 +169,8 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   
   tfm->char_info = new char_info_word[tfm->char_upper - tfm->char_lower + 1];
   
+  tfm->tfm_path = Path(path);
+
   // let's read the remainder of the TFM file.
   read_header(stream, lh, tfm);
   read_char_info(stream, tfm);
@@ -225,6 +224,13 @@ void TFM::populate_font(Font &font, int32_t at) const {
   font.set_x_height(sp_from_fixed(f_x_height) * z);
   font.set_quad(sp_from_fixed(f_quad) * z);
   font.set_extra_space(sp_from_fixed(f_extra_space) * z);
+}
+
+void TFM::load_font(const char *path, Font &font, int32_t at) {
+  UniquePtr<TFM> tfm;
+  init_from_file(path, tfm);
+  tfm->populate_font(font, at);
+  font.set_tfm(tfm);
 }
 
 TFM::~TFM(void) {

@@ -6,11 +6,20 @@
 namespace tex {
 
 union word {
+  int64_t i64;
   void *ptr;
   sp scaled;
   glue_ratio g_ratio;
-  int64_t i64;
   uint64_t u64;
+  unichar uc;
+
+  bool operator==(word other) {
+    return i64 == other.i64;
+  }
+
+  bool operator!=(word other) {
+    return i64 != other.i64;
+  }
 };
 
 }

@@ -27,6 +27,10 @@ struct glue_node {
   glue_order stretch_order, shrink_order;
 };
 
+static inline glue_node exact_glue(sp width) {
+  return (glue_node){width, scaled(0), scaled(0), GLUE_NORMAL, GLUE_NORMAL};
+}
+
 }
 
 #endif  // __INCLUDE_RENDER_GLUE_H__

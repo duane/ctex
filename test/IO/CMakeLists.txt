@@ -1,3 +1,2 @@
-add_gtest(IO_test BinaryInputStream.cc CodecInputStream.cc)
+add_gtest(IO_test BinaryInputStream.cc CodecInputStream.cc Path.cc)
 target_link_libraries(IO_test Diag IO Unicode Util)
-add_dependencies(IO_test Util_test Unicode_test)

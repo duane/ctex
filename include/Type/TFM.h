@@ -6,11 +6,14 @@
 
 #include <Diag/Diag.h>
 #include <IO/BinaryInputStream.h>
-#include <Type/Font.h>
+#include <IO/Path.h>
+#include <Render/sp.h>
 #include <Util/UniquePtr.h>
 
 
 namespace tex {
+
+class Font;
 
 /**
  *  TFM is a class that corresponds directly to a TFM file.
@@ -69,6 +72,8 @@ private:
 
   fix_word f_slant, f_space, f_space_stretch, f_space_shrink;
   fix_word f_x_height, f_quad, f_extra_space;
+
+  Path tfm_path;
 private:
   // The default private constructor used in init_from_file
   TFM(void) : width_size(0), height_size(0), depth_size(0), italic_size(0),
@@ -188,6 +193,10 @@ public:
     return f_extra_space;
   }
 
+  Path path(void) const {
+    return tfm_path;
+  }
+
   /**
    *  Initializes a new TFM file from the contents of file at path.
    *  @param path Where to find the TFM file.
@@ -197,6 +206,12 @@ public:
   static void init_from_file(const char *path, UniquePtr<TFM> &result);
   
   void populate_font(Font &font, int32_t at) const;
+
+  static void load_font(const char *path, Font &font, int32_t at);
+
+  static sp sp_from_fixed(fix_word f) {
+    return scaled(f >> 4);
+  }
 
   /** Deconstructor frees allocated memory. */
   ~TFM(void);

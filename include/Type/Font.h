@@ -4,6 +4,7 @@
 #include <Render/sp.h>
 #include <Util/SmallIntMap.h>
 #include <Unicode/Unicode.h>
+#include <Type/TFM.h>
 
 namespace tex {
 
@@ -19,17 +20,21 @@ private:
   SmallIntMap<CharInfo, 256> char_map;
   sp f_space, f_space_stretch, f_space_shrink;
   sp f_x_height, f_quad, f_extra_space;
+  UniquePtr<TFM> tfm;
 
 public:
   // Copy/assign allowed
   // Should only happen when creating the Font.
-  Font(const Font &other) : char_map(other.map()) {}
+  Font(const Font &other) : char_map(other.map()) {
+    Font &other_mut = const_cast<Font &>(other);
+    set_tfm(other_mut.get_tfm());
+  }
 
-  Font operator=(const Font &other) {
+  Font operator=(Font other) {
     return Font(other);
   }
 
-  Font(void) : char_map() {}
+  Font(void) {}
 
   const SmallIntMap<CharInfo, 256> &map(void) const {
     return char_map;
@@ -95,6 +100,14 @@ public:
 
   const CharInfo *get_maybe(unichar uc) const {
     return char_map.get(uc);
+  }
+
+  void set_tfm(UniquePtr<TFM> &new_tfm) {
+    tfm.reset(new_tfm.take());
+  }
+
+  UniquePtr<TFM> &get_tfm(void) {
+    return tfm;
   }
 };
 //typedef SmallIntMap<CharInfo, 256> Font;

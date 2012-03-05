@@ -15,7 +15,7 @@ private:
   TokenInputStream(const TokenInputStream&);
   TokenInputStream &operator=(const TokenInputStream&);
 
-  TokenInputStream() : input_stream(), parser_state(STATE_NEWLINE) {}
+  TokenInputStream() : input_stream(), parser_state(STATE_NEWLINE), peeked(false) {}
 private:
   UniquePtr<CodecInputStream> input_stream;
 
@@ -27,6 +27,8 @@ private:
     STATE_MIDLINE,
   };
 
+  Token peek_tok;
+  bool peeked;
 private:
   // internal parsing methods
   int read_translated_char(UniquePtr<State> &state, unichar &uc);
@@ -41,6 +43,14 @@ public:
    */
   int consume_token(UniquePtr<State> &state, Token &result);
   
+  /**
+   * "Peeks" at the token without consuming it.
+   * @param state The state of the tex file.
+   * @param result Where the resulting token is stored. EOF is indicated by returning a token with the cmd type of CC_EOF
+   * @return NULL on success, non-NULL diagnostic on error.
+   */
+   int peek_token(UniquePtr<State> &state, Token &result);
+
   /**
    * Initializes the stream from a  file.
    * @param path A constant C-String indicating the location of the file.
