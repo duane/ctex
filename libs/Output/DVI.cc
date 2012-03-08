@@ -5,7 +5,7 @@
 using namespace tex;
 
 static const bool FRAME_BOXES = false;
-static const int64_t weight = 0x10000;
+static const int64_t weight = 0x07fff;
 
 
 void DVI::init_with_file(const char *path, UniquePtr<DVI> &result) {
@@ -66,6 +66,7 @@ void DVI::write_char(UniquePtr<State> &state, RenderNode *node) {
 void DVI::write_hbox(UniquePtr<State> &state, RenderNode *node) {
   assert(node->type == HBOX_NODE && "Internal error; not hbox.");
   assert(mode == VERT && "Attempted to write hbox in horizontal mode.");
+  writer->down(node->height(state).i64);
   writer->push();
   mode = HORIZ;
   RenderNode *hlist = node->box.list;
@@ -76,17 +77,18 @@ void DVI::write_hbox(UniquePtr<State> &state, RenderNode *node) {
   mode = VERT;
   writer->pop();
   if (FRAME_BOXES) {
+    writer->push();
     int32_t width = node->width(state).i64;
     int32_t height = node->height(state).i64;
     std::cout << "width: " << scaled(width).string() << ", height: " << scaled(height).string() << std::endl;
-    writer->right(width);
-    writer->put_rule(height, weight);
-    writer->down(height);
-    writer->right(-width);
     writer->put_rule(weight, width);
     writer->put_rule(height, weight);
-  } else {
-    writer->down(node->height(state).i64);
+    writer->down(-height);
+    writer->put_rule(weight, width);
+    writer->down(height);
+    writer->right(width);
+    writer->put_rule(height, weight);
+    writer->pop();
   }
 }
 

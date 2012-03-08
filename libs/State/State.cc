@@ -35,14 +35,16 @@ State::State(void) {
   tex_mem[LEFT_SKIP_CODE].scaled = scaled(0);
   tex_mem[RIGHT_SKIP_CODE].scaled = scaled(0);
   tex_mem[HSIZE_CODE].scaled = scaled_from(0x67FFF, UNIT_IN); // 6.5in
-  tex_mem[VSIZE_CODE].scaled = scaled_from(0x90000, UNIT_IN); // 9in
-  tex_mem[BASELINE_SKIP_CODE].scaled = scaled(0xC0000);
+  tex_mem[VSIZE_CODE].scaled = scaled_from(9 << 16, UNIT_IN); // 9in
+  tex_mem[PARINDENT_CODE].scaled = scaled(18 << 16);
+  tex_mem[BASELINE_SKIP_CODE].scaled = scaled(12 << 16);
 
   // enter vmode.
   r_state.set_mode(VMODE);
 
   // initialize primitives.
-  primitive(UString("par"), CC_PAR_END, (word){0});
+  primitive("par", CC_PAR_END, (word){0});
+  primitive("end", CC_STOP, (word){0});
 }
 
 void State::init(UniquePtr<State> &result) {

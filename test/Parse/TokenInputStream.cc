@@ -27,7 +27,7 @@ TEST(TokenInputStreamTest, Empty) {
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Empty", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;
-  ASSERT_NO_THROW({ASSERT_EQ(1, input_stream->consume_token(state, token));});
+  EXPECT_CMD(input_stream, token, state, CC_STOP);
 }
 
 TEST(TokenInputStreamTest, Spaces) {
@@ -38,10 +38,12 @@ TEST(TokenInputStreamTest, Spaces) {
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Spaces", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;
+  ASSERT_NO_THROW({
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
   EXPECT_CMD(input_stream, token, state, CC_SPACER);
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
-  ASSERT_EQ(1, input_stream->consume_token(state, token));
+  EXPECT_CMD(input_stream, token, state, CC_STOP);
+  });
 }
 
 TEST(TokenInputStreamTest, Newlines) {
@@ -52,6 +54,7 @@ TEST(TokenInputStreamTest, Newlines) {
   ASSERT_NO_THROW(TokenInputStream::init_from_file("TokenInputStream/Newlines", &codec, input_stream));
   ASSERT_TRUE(input_stream);
   Token token;
+  ASSERT_NO_THROW({
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
   EXPECT_CMD(input_stream, token, state, CC_SPACER);
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
@@ -59,6 +62,7 @@ TEST(TokenInputStreamTest, Newlines) {
   EXPECT_CMD(input_stream, token, state, CC_PAR_END);
   EXPECT_CMD(input_stream, token, state, CC_LETTER);
   EXPECT_CMD(input_stream, token, state, CC_SPACER);
-  ASSERT_EQ(1, input_stream->consume_token(state, token));
+  EXPECT_CMD(input_stream, token, state, CC_STOP);
+  });
 }
 

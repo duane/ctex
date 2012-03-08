@@ -15,19 +15,32 @@ void TokenRender::init_from_file(const char *path, const Codec *codec, UniquePtr
 
 #define M(mode, cmd) ((mode) << 16 | (cmd))
 
+static inline void end_paragraph(UniquePtr<State> &state, RenderState &render) {
+  simple_line_break(state);
+  render.set_mode(VMODE);
+}
+
+static inline void begin_paragraph(UniquePtr<State> &state, RenderState &render) {
+  glue_node glue = exact_glue(state->mem(PARINDENT_CODE).scaled);
+  RenderNode *indent = RenderNode::new_glue(glue);
+  render.push();
+  render.set_mode(HMODE);
+  render.set_head(indent);
+  render.set_tail(indent);
+}
+
 void TokenRender::render_input(UniquePtr<State> &state) {
   Token token;
   RenderState &r_state = state->render();
-  while (!input->peek_token(state, token)) {
+  bool stop = false;
+  while (!stop) {
+    input->peek_token(state, token);
     uint32_t mode_cmd = (r_state.mode() << 16 | (token.cmd & 0xFFFF));
     switch(mode_cmd) {
       case M(VMODE, CC_LETTER):
       case M(VMODE, CC_OTHER_CHAR): {
         // enter horizontal mode.
-        r_state.push();
-        r_state.set_mode(HMODE);
-        r_state.set_head(NULL);
-        r_state.set_tail(NULL);
+        begin_paragraph(state, r_state);
         break; // read the character again, this time in HMODE
       }
       case M(HMODE, CC_LETTER):
@@ -47,12 +60,24 @@ void TokenRender::render_input(UniquePtr<State> &state) {
       }
       case M(HMODE, CC_PAR_END): {
         input->consume_token(state, token);
-        simple_line_break(state);
-        r_state.set_mode(VMODE);
+        if (r_state.head())
+          end_paragraph(state, r_state);
         break;
       }
       case M(VMODE, CC_PAR_END): {
         input->consume_token(state, token);
+        break;
+      }
+      case M(HMODE, CC_STOP): {
+        input->consume_token(state, token);
+        // leave HMODE
+        simple_line_break(state);
+        stop = true;
+        break;
+      }
+      case M(VMODE, CC_STOP): {
+        input->consume_token(state, token);
+        stop = true;
         break;
       }
       default: {

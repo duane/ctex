@@ -84,6 +84,10 @@ int TokenInputStream::read_command_sequence(UniquePtr<State> &state, UString &re
   return 0;
 }
 
+#define EOF_ERROR() \
+  new GenericDiag("Unexpected EOF! Perhaps you forgot \\end?",\
+                  DIAG_PARSE_ERR, BLAME_HERE);
+
 int TokenInputStream::peek_token(UniquePtr<State> &state, Token &result) {
   assert(input_stream && "Attempted to read from a NULL stream.");
   
@@ -101,8 +105,8 @@ int TokenInputStream::peek_token(UniquePtr<State> &state, Token &result) {
   const char *name = input_stream->name();
   
   if (read_translated_char(state, peek_tok.uc))
-    return 1;
-
+    throw EOF_ERROR();
+    
   peek_tok.cmd = state->catcode(peek_tok.uc);
   switch (peek_tok.cmd) {
     case CC_IGNORE: {
@@ -168,7 +172,7 @@ int TokenInputStream::peek_token(UniquePtr<State> &state, Token &result) {
           return peek_token(state, result);
       }
       // Whoops, reached EOF.
-      return 1;
+      throw EOF_ERROR();
     }
     case CC_INVALID:
     default: {

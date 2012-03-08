@@ -110,9 +110,10 @@ public:
     return tex_mem[code];
   }
 
-  void primitive(UString name, CommandCode cmd, word operand) {
-    CommandSequence cs = {name, cmd, operand};
-    cs_map.set(name, cs);
+  void primitive(const char *name, CommandCode cmd, word operand) {
+    UString uname = UString(name);
+    CommandSequence cs = {UString(uname), cmd, operand};
+    cs_map.set(uname, cs);
   }
 
   static void init(UniquePtr<State> &result);
