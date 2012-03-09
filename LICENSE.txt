@@ -32,8 +32,12 @@ named "ctex" in the following ways:
   references to "tex" refer to either Donald Knuth's original program or to
   the algorithms the original program uses.
 
-OTHER FILES
------------
+OTHER SOURCES AND FILES
+-----------------------
+
+test/gtest:
+  Google Test is distributed with CTeX under the conditions stated in
+  "test/gtest/COPYING."
 
 tex/tex.web:
   This program is copyright (C) 1982 by D. E. Knuth; all rights are reserved.
