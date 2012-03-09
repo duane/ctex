@@ -10,7 +10,6 @@ include_directories("include")
 add_subdirectory(config)
 include_directories(${tex_BINARY_DIR})
 
-
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
   add_custom_target(doc ${DOXYGEN_EXECUTABLE} doc/Doxyfile COMMENT "Generating API documentation with Doxygen" VERBATIM)
