@@ -13,3 +13,7 @@ Testing
 # gtest
 
 test/gtest
+
+# Configure
+
+Config.h

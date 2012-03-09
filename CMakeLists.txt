@@ -2,8 +2,13 @@ cmake_minimum_required (VERSION 2.8)
 project (tex) 
 
 # C flags
-set(CMAKE_CXX_FLAGS "-g -O0 -Wall -Wextra -Werror -Wno-unused-parameter -fno-rtti")
+set(CMAKE_CXX_FLAGS
+    "-g -O0 -Wall -Wextra -Werror -Wno-unused-parameter -fno-rtti")
 include_directories("include")
+
+# configure
+add_subdirectory(config)
+
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

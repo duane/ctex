@@ -29,9 +29,8 @@ enum {
   CC_INVALID = 15,
   CC_DELIM_NUM = 15,
   
-  // HACK!
-  // TODO: Remove these.
-  CC_CS_STRING = 16,
+  CC_SET_FONT,
+  
 };
 
 }

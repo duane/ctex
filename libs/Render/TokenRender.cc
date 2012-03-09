@@ -80,6 +80,16 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         stop = true;
         break;
       }
+      case M(VMODE, CC_SET_FONT):
+      case M(HMODE, CC_SET_FONT):
+      case M(MMODE, CC_SET_FONT):
+      case M(IN_VMODE, CC_SET_FONT):
+      case M(IN_HMODE, CC_SET_FONT):
+      case M(IN_MMODE, CC_SET_FONT): {
+        input->consume_token(state, token);
+        state->set_font(token.cs->operand.i64);
+        break;
+      }
       default: {
         throw new BlameSourceDiag("Command code not implemented yet.",
           DIAG_RENDER_ERR, BLAME_HERE,
