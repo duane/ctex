@@ -14,48 +14,31 @@
 *  limitations under the License.                                            *
 *****************************************************************************/
 
-#include <Unicode/Codecs/ASCII.h>
-#include <Unicode/Codec.h>
+#include <Output/DVI.h>
+#include <State/State.h>
+#include <Render/TokenRender.h>
+#include <Unicode/Codecs/UTF8.h>
 
 using namespace tex;
 
-Codec::Codec() {
+int main(int argc, char **argv) {
   
-}
-  
-UString *Codec::DecodeBuffer(EncodedBuffer buf) {
-  uint8_t *str = buf.buffer;
-  size_t length = buf.length;
-  MutableUString *out = new MutableUString(length);
-  size_t offset = 0;
-  for (size_t i = 0; i < length; i++) {
-    DecodedCharacter dc = decode(str, offset, length);
-    offset += dc.length;
-    out->add(dc.uchar);
-  }
-  return out;
-}
+  UniquePtr<State> state;
+  UniquePtr<TokenRender> render;
+  UniquePtr<DVI> output;
+  Codec *codec = new UTF8Codec();
 
-EncodedBuffer Codec::GetEncodedBuffer(UString *str) {
-  EncodedBuffer eb;
-  size_t allocated = str->get_allocated();
-  size_t length = str->get_length();
-  size_t destIndex = 0;
-  unichar *data = str->get_raw();
-  uint8_t *dest = new uint8_t[allocated];
-  for (size_t index = 0; index < length; index++) {
-    EncodedCharacter ec = encode(data[index]);
-    if (destIndex + ec.length >= allocated) { // if our buffer has run out of room
-      uint8_t *temp = new uint8_t[allocated * 2];
-      memcpy(temp, dest, destIndex);
-      delete dest;
-      dest = temp;
-      allocated = allocated * 2;
-    }
-    memcpy(dest + destIndex, ec.encoded, ec.length);
-    destIndex += ec.length;
+  try {
+    State::init(state);
+    TokenRender::init_from_file("hello.tex", codec, render);
+    DVI::init_with_file("hello.dvi", output);
+
+    render->render_input(state);
+    output->render(state);
+  } catch (Diag *diag) {
+    diag->print();
+    return 1;
   }
-  eb.length = destIndex;
-  eb.buffer = dest;
-  return eb;
+
+  return 0;
 }

@@ -1,4 +1,20 @@
-#include <Config/Config.h>
+/*****************************************************************************
+*  Copyright (c) 2012 Duane Ryan Bailey                                      *
+*                                                                            *
+*  Licensed under the Apache License, Version 2.0 (the "License");           *
+*  you may not use this file except in compliance with the License.          *
+*  You may obtain a copy of the License at                                   *
+*                                                                            *
+*      http://www.apache.org/licenses/LICENSE-2.0                            *
+*                                                                            *
+*  Unless required by applicable law or agreed to in writing, software       *
+*  distributed under the License is distributed on an "AS IS" BASIS,         *
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  *
+*  See the License for the specific language governing permissions and       *
+*  limitations under the License.                                            *
+*****************************************************************************/
+
+#include <Config.h>
 #include <State/State.h>
 #include <Type/TFM.h>
 #include <Render/Units.h>
@@ -42,6 +58,7 @@ State::State(void) {
   tex_mem[VSIZE_CODE].scaled = scaled_from(9 << 16, UNIT_IN); // 9in
   tex_mem[PARINDENT_CODE].scaled = scaled(18 << 16);
   tex_mem[BASELINE_SKIP_CODE].scaled = scaled(12 << 16);
+  tex_mem[SPLIT_TOP_SKIP_CODE].scaled = scaled(12 << 16);
 
   // enter vmode.
   r_state.set_mode(VMODE);

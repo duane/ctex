@@ -1,3 +1,19 @@
+/*****************************************************************************
+*  Copyright (c) 2012 Duane Ryan Bailey                                      *
+*                                                                            *
+*  Licensed under the Apache License, Version 2.0 (the "License");           *
+*  you may not use this file except in compliance with the License.          *
+*  You may obtain a copy of the License at                                   *
+*                                                                            *
+*      http://www.apache.org/licenses/LICENSE-2.0                            *
+*                                                                            *
+*  Unless required by applicable law or agreed to in writing, software       *
+*  distributed under the License is distributed on an "AS IS" BASIS,         *
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  *
+*  See the License for the specific language governing permissions and       *
+*  limitations under the License.                                            *
+*****************************************************************************/
+
 #include <Render/SimpleBreaker.h>
 
 #include <iostream>
@@ -8,9 +24,9 @@ static inline void finalize_line(UniquePtr<State> &state, RenderNode *head,
                                  RenderNode *tail) {
   // first, throw left and right skip in there.
   assert(head && "Attempted to package a NULL line.");
-  glue_node left_glue = exact_glue(state->mem(LEFT_SKIP_CODE).scaled);
+  glue_node left_glue = skip_glue(state->mem(LEFT_SKIP_CODE).scaled);
   RenderNode *left = RenderNode::new_glue(left_glue);
-  glue_node right_glue = exact_glue(state->mem(RIGHT_SKIP_CODE).scaled);
+  glue_node right_glue = skip_glue(state->mem(RIGHT_SKIP_CODE).scaled);
   RenderNode *right = RenderNode::new_glue(right_glue);
   left->link = head;
   tail->link = right;
@@ -21,7 +37,7 @@ static inline void finalize_line(UniquePtr<State> &state, RenderNode *head,
   sp height = hbox->height(state);
   sp baseline = state->mem(BASELINE_SKIP_CODE).scaled;
   if (baseline > height) {
-    glue_node baseline_glue = exact_glue(baseline - height);
+    glue_node baseline_glue = skip_glue(baseline - height);
     RenderNode *baseline = RenderNode::new_glue(baseline_glue);
     state->render().append(baseline);
   }

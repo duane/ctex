@@ -1,3 +1,19 @@
+/*****************************************************************************
+*  Copyright (c) 2012 Duane Ryan Bailey                                      *
+*                                                                            *
+*  Licensed under the Apache License, Version 2.0 (the "License");           *
+*  you may not use this file except in compliance with the License.          *
+*  You may obtain a copy of the License at                                   *
+*                                                                            *
+*      http://www.apache.org/licenses/LICENSE-2.0                            *
+*                                                                            *
+*  Unless required by applicable law or agreed to in writing, software       *
+*  distributed under the License is distributed on an "AS IS" BASIS,         *
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  *
+*  See the License for the specific language governing permissions and       *
+*  limitations under the License.                                            *
+*****************************************************************************/
+
 #include <Render/TokenRender.h>
 
 #include <cstdio>
@@ -21,7 +37,7 @@ static inline void end_paragraph(UniquePtr<State> &state, RenderState &render) {
 }
 
 static inline void begin_paragraph(UniquePtr<State> &state, RenderState &render) {
-  glue_node glue = exact_glue(state->mem(PARINDENT_CODE).scaled);
+  glue_node glue = skip_glue(state->mem(PARINDENT_CODE).scaled);
   RenderNode *indent = RenderNode::new_glue(glue);
   render.push();
   render.set_mode(HMODE);
