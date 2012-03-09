@@ -1,0 +1,10 @@
+#ifndef __INCLUDE_CONFIG_CONFIG_H__
+#define __INCLUDE_CONFIG_CONFIG_H__
+
+namespace tex {
+
+const char *FONT_AREA = "@TEX_FONT_AREA@";
+
+}
+
+#endif  // __INCLUDE_CONFIG_CONFIG_H__

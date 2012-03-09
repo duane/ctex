@@ -1,3 +1,4 @@
+#include <Config/Config.h>
 #include <State/State.h>
 #include <Type/TFM.h>
 #include <Render/Units.h>
@@ -25,11 +26,14 @@ State::State(void) {
   ccode[0x0D] = CC_CAR_RET; // '\r'
 
   // load the null font.
-  Font f;
-  fonts.append(f);
+  Font null_font;
+  fonts.append(null_font);
 
   // and load computer modern.
-  curr_font = load_font("cmr10.tfm", -1000);
+  curr_font = load_font("cmr10", "rm", -1000);
+  load_font("cmti10", "it", -1000);
+  load_font("cmbx10", "bf", -1000);
+  load_font("cmtt10", "tt", -1000);
 
   // Internal variables
   tex_mem[LEFT_SKIP_CODE].scaled = scaled(0);
@@ -51,11 +55,16 @@ void State::init(UniquePtr<State> &result) {
     result.reset(new State());
 }
 
-uint32_t State::load_font(const char *path, int32_t at) {
+uint32_t State::load_font(const char *file, const char *name, int32_t at) {
   uint32_t f = fonts.entries();
   Font empty_font;
   fonts.append(empty_font);
   Font &font = fonts.get(f);
-  TFM::load_font(path, font, at);
+  Path path;
+  path.set_area(FONT_AREA);
+  path.set_file(file);
+  path.set_ext("tfm");
+  TFM::load_font(path.full_path().c_str(), font, at);
+  primitive(name, CC_SET_FONT, (word){f});
   return f;
 }

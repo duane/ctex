@@ -70,6 +70,10 @@ public:
     return curr_font;
   }
 
+  void set_font(uint32_t font) {
+    curr_font = font;
+  }
+
   Font &metrics(const uint32_t f) {
     return fonts.get(f);
   }
@@ -100,7 +104,7 @@ public:
     return cs_map.entries();
   }
 
-  uint32_t load_font(const char *font, int32_t at);
+  uint32_t load_font(const char *font, const char *cs, int32_t at);
 
   RenderState &render(void) {
     return r_state;
