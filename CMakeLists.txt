@@ -8,7 +8,7 @@ include_directories("include")
 
 # configure
 add_subdirectory(config)
-
+include_directories(${tex_BINARY_DIR})
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)

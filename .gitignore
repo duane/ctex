@@ -10,10 +10,6 @@ Testing
 # object files
 *.a
 
-# gtest
-
-test/gtest
-
 # Configure
 
 Config.h

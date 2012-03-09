@@ -1,0 +1,51 @@
+CTEX LICENSE
+============
+
+CTEX SOURCE
+-----------
+
+Copyright (c) 2012 Duane Ryan Bailey
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not
+use this file except in compliance with the License. You may obtain a copy of
+the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations under
+the License.
+
+NAME
+----
+
+Because CTeX is not yet a program that conforms to the original TeX, it is
+named "ctex" in the following ways:
+
+  1. The github account that hosts the code was renamed to "ctex" in March of
+  2012.
+  2. The executable generated from the source code is "ctex", not "tex".
+  3. In output DVI files, the program identifies itself as "CTeX".
+  4. The project refers to itself as "CTeX" when referring to itself; any
+  references to "tex" refer to either Donald Knuth's original program or to
+  the algorithms the original program uses.
+
+OTHER SOURCES AND FILES
+-----------------------
+
+test/gtest:
+  Google Test is distributed with CTeX under the conditions stated in
+  "test/gtest/COPYING."
+
+tex/tex.web:
+  This program is copyright (C) 1982 by D. E. Knuth; all rights are reserved.
+  Copying of this file is authorized only if (1) you are D. E. Knuth, or if
+  (2) you make absolutely no changes to your copy. (The WEB system provides
+  for alterations via an auxiliary file; the master file should stay intact.)
+
+support/fonts:
+  Like "tex.web", the Computer Modern fonts have not been modified, and are as
+  such freely distributable as Computer Modern. The font metric files were
+  copied as-is from the "TeX Live 2009" distribution.
