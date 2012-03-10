@@ -60,6 +60,11 @@ State::State(void) {
   tex_mem[BASELINE_SKIP_CODE].scaled = scaled(12 << 16);
   tex_mem[SPLIT_TOP_SKIP_CODE].scaled = scaled(12 << 16);
 
+  // initialize box registers.
+  for (unsigned i = 0; i < 256; i++) {
+    tex_mem[BOX_BEGIN_CODE + i].ptr = NULL;
+  }
+
   // enter vmode.
   r_state.set_mode(VMODE);
 
