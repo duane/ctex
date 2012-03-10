@@ -51,48 +51,101 @@ RenderNode *tex::prune_page_top(UniquePtr<State> &state, RenderNode *vlist) {
   return NULL;
 }
 
-static inline void update_delta_glue(delta &d, RenderNode *node) {
-  assert(node.type == GLUE_NODE
-         && "Expected glue node, got something different.");
-  glue_node &glue = node.glue;
-  d[1+glue.stretch_order] += glue.stretch;
-  d[5] +=  glue.shrink;
-}
-
 RenderNode *tex::vert_break(UniquePtr<State> &state, RenderNode *vlist,
-                            sp height, sp depth) {
+                            sp height, sp depth, sp &best_height_plus_depth) {
   RenderNode *p = vlist, *prev_p = vlist;
 
   RenderNode *best = NULL;
-  int32_t best_badness = BADNESS_AWFUL;
-  int32_t penalty = 0;
+  int32_t best_badness = PENALTY_AWFUL;
+  penalty_node penalty = 0;
 
 
-  sp prev_depth = scaled(0), curr_height = scaled(0);
+  sp prev_depth = scaled(0), cur_height = scaled(0);
 
   delta active_height; // initialized to zero.
 
-  bool done = false;
-  bool ready_to_break = false;
-  while (!done) {
+
+  // ready to break is set to true if a box or rule node is found, so that
+  // when a glue node is encountered, it can break if ready_to_break is set.
+  while (true) {
+    bool found_break = false;
+    bool update_heights = true;
     if (!p)
-      penalty = BADNESS_EJECT;
+      penalty = PENALTY_BREAK;
     else {
       switch (p->type) {
         case GLUE_NODE: {
-          if (ready_to_break)
+          update_heights = true;
+          if (prev_p->type == HBOX_NODE
+              //|| prev_p->type == RULE_NODE
+              || prev_p->type == VBOX_NODE) {
             penalty = 0;
-          else {
-            update_delta_glue(active_height, p);
+            found_break = true;
           }
           break;
         }
         // case RULE_NODE: 
         case HBOX_NODE:
         case VBOX_NODE: {
-
+          cur_height += prev_depth + p->width(state);
+          prev_depth = p->depth(state);
+          break;
+        }
+        case PENALTY_NODE: {
+          penalty = p->penalty;
+          break;
+        }
+        default: {
+          assert(false && "Found bad node type in vlist during vert_break.");
         }
       }
+      if (found_break) {
+        int32_t bad;
+        if (penalty < PENALTY_INF) {
+          if (cur_height < height) {
+            if (active_height[2] || active_height[3] || active_height[4])
+              bad = 0;
+            else
+              bad = badness(height - cur_height, active_height[1]);
+          } else if (cur_height - height > active_height[5])
+            bad = PENALTY_AWFUL;
+          else
+            bad = badness(cur_height - height, active_height[5]);
+        }
+        if (bad < PENALTY_AWFUL) {
+          if (penalty <= PENALTY_BREAK)
+            bad = penalty;
+          else if (bad < PENALTY_INF)
+            bad += penalty;
+          else
+            bad = PENALTY_DEPLORABLE;
+        }
+        if (bad <= best_badness) { // we've found a new breakpoint.
+          best = p;
+          best_badness = bad;
+          best_height_plus_depth = cur_height + prev_depth;
+        }
+        if (bad == PENALTY_AWFUL || penalty <= PENALTY_BREAK)
+          return best;
+      }
+
+      if (update_heights) {
+        assert (p->type == GLUE_NODE && "Expected glue node!");
+        glue_node &glue = p->glue;
+        active_height[1+glue.stretch_order] += glue.stretch;
+        active_height[5] +=  glue.shrink;
+
+        if (glue.shrink_order != GLUE_NORMAL && glue.shrink != 0)
+          throw new GenericDiag("Found infinite shrinkage!",
+                                DIAG_RENDER_ERR, BLAME_HERE);
+        cur_height = cur_height + prev_depth + glue.width;
+        prev_depth = scaled(0);
+      }
+
+      prev_p = p;
+      p = p->link;
     }
   }
+  assert(false && "Unreachable code! Please fix.");
+  return NULL;
 }

@@ -21,8 +21,32 @@ namespace tex {
 
 typedef int32_t penalty_node;
 
-const penalty_node INF_PENALTY = 10000;
-const penalty_node BREAK_PENALTY = -10000;
+enum {
+  PENALTY_BREAK = -10000,
+  PENALTY_INF = 10000,
+  PENALTY_DEPLORABLE = 100000,
+  PENALTY_AWFUL = 1000000,
+};
+
+static inline int32_t badness(sp t, sp s) {
+  int32_t r;
+  if (t == 0)
+    return 0;
+  else if (s <= 0)
+    return PENALTY_INF;
+  else {
+    if (t <= 7230584)
+      r = (t.i64 * 297) / s.i64;
+    else if (s >= 1663497)
+      r = t.i64 / (s.i64 / 297);
+    else
+      r = t.i64;
+    if (r > 1290)
+      return PENALTY_INF;
+    return (r * r * r + 0x20000) / 0x40000;
+  }
+
+}
 
 }
 

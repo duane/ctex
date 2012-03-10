@@ -24,7 +24,7 @@ namespace tex {
 
 extern RenderNode *prune_page_top(UniquePtr<State> &state, RenderNode *vlist);
 extern RenderNode *vert_break(UniquePtr<State> &state, RenderNode *vlist,
-                              sp height, sp depth);
+                              sp height, sp depth, sp &best_height_plus_depth);
 
 }
 
