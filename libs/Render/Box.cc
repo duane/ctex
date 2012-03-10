@@ -21,7 +21,7 @@
 using namespace tex;
 
 RenderNode *tex::hpack(UniquePtr<State> &state,
-                  RenderNode *hlist, sp width, pack_type type) {
+                       RenderNode *hlist, sp width, pack_type type) {
   RenderNode *result_node = RenderNode::empty_hbox();
   box_node &hbox = result_node->box;
   hbox.list = hlist;
@@ -125,13 +125,103 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
     } else {
       hbox.order = ord;
       hbox.sign = SIGN_STRETCH;
-      hbox.g_ratio = (float)delta_width.i64/total_shrink[ord].i64 ;
+      hbox.g_ratio = (float)delta_width.i64/total_shrink[ord].i64;
       return result_node;
     }
-    assert(false && "Unreachable! please fix.");
-    return NULL;
+  }
+  assert(false && "Unreachable! please fix.");
+  return NULL;
+}
+
+RenderNode *tex::vpackage(UniquePtr<State> &state, RenderNode *vlist,
+                          sp height, sp given_depth, pack_type type) {
+  sp nat_height = scaled(0);
+  UniquePtr<RenderNode> node; // RAII
+  node.reset(RenderNode::empty_vbox());
+
+  box_node &box = node->box;
+  box.list = vlist;
+  RenderNode *p = box.list;
+  sp total_stretch[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
+  sp total_shrink[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
+
+  while (p) {
+    switch(p->type) {
+      case CHAR_NODE: {
+        assert(false && "Found char node in vlist.");
+      }
+      //case RULE_NODE:
+      case VBOX_NODE:
+      case HBOX_NODE: {
+        box_node inner_box = p->box;
+        nat_height += box.depth + inner_box.height;
+        box.depth = inner_box.depth;
+        if (inner_box.shift + inner_box.width > box.width)
+          box.width = inner_box.shift + inner_box.width;
+        break;
+      }
+      case GLUE_NODE: {
+        glue_node &glue = p->glue;
+        nat_height += glue.width;
+        total_stretch[glue.stretch_order] += glue.stretch;
+        total_shrink[glue.shrink_order] += glue.shrink;
+        break;
+      }
+      default: {
+        assert(false && "Found bad node type in vlist.");
+      }
+    }
+    p = p->link;
   }
 
+  if (box.depth > given_depth) {
+    nat_height += (box.depth - given_depth);
+    box.depth = given_depth;
+  }
 
-
+  // now sort out target height.
+  if (type == ADDITIONAL)
+    height += nat_height;
+  box.height = height;
+  sp excess = height - nat_height;
+  if (excess == 0) {
+    box.sign = SIGN_NORMAL;
+    box.order = GLUE_NORMAL;
+    box.g_ratio = 0.0;
+    return node.take();
+  }
+  if (excess > 0) {
+    if (total_stretch[GLUE_FILLL])
+      box.order = GLUE_FILLL;
+    else if (total_stretch[GLUE_FILL])
+      box.order = GLUE_FILL;
+    else if (total_stretch[GLUE_FIL])
+      box.order = GLUE_FIL;
+    else
+      box.order = GLUE_NORMAL;
+    box.sign = SIGN_STRETCH;
+    if (total_stretch[box.order])
+      box.g_ratio = (float)excess.i64/total_stretch[box.order].i64;
+    else {
+      box.sign = SIGN_NORMAL;
+      box.g_ratio = 0.0;
+    }
+  } else {
+    if (total_shrink[GLUE_FILLL])
+      box.order = GLUE_FILLL;
+    else if (total_shrink[GLUE_FILL])
+      box.order = GLUE_FILL;
+    else if (total_shrink[GLUE_FIL])
+      box.order = GLUE_FIL;
+    else
+      box.order = GLUE_NORMAL;
+    box.sign = SIGN_SHRINK;
+    if (total_shrink[box.order])
+      box.g_ratio = (float)excess.i64/total_stretch[box.order].i64;
+    else {
+      box.sign = SIGN_NORMAL;
+      box.g_ratio = 0.0;
+    }
+  }
+  return node.take();
 }

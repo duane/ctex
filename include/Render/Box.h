@@ -40,10 +40,19 @@ static inline box_node empty_box(void) {
 
 enum pack_type {
   EXACTLY,
-  ADDITIONAL
+  ADDITIONAL,
 };
 
-extern RenderNode *hpack(UniquePtr<State> &state, RenderNode *hlist, sp width, pack_type type);
+extern RenderNode *vpackage(UniquePtr<State> &state, RenderNode *vlist,
+                            sp height, sp depth, pack_type type);
+
+static inline RenderNode *vpack(UniquePtr<State> &state, RenderNode *vlist,
+                            sp height, pack_type type) {
+  return vpackage(state, vlist, height, scaled((1<<30) - 1), type);
+}
+
+extern RenderNode *hpack(UniquePtr<State> &state, RenderNode *hlist, sp width,
+                         pack_type type);
 
 }  // namespace tex
 
