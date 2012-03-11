@@ -171,6 +171,8 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   tfm->height_size = nh;
   tfm->depth_size = nd;
   tfm->italic_size = ni;
+  tfm->ligkern_size = nl;
+  tfm->kern_size = nk;
   
   tfm->char_lower = bc;
   tfm->char_upper = ec;
@@ -182,6 +184,8 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   tfm->height_table = new fix_word[tfm->height_size];
   tfm->depth_table = new fix_word[tfm->depth_size];
   tfm->italic_table = new fix_word[tfm->italic_size];
+  tfm->ligkern_table = new ligkern_step[tfm->ligkern_size];
+  tfm->kern_table = new fix_word[tfm->kern_size];
   
   tfm->char_info = new char_info_word[tfm->char_upper - tfm->char_lower + 1];
   
@@ -195,8 +199,18 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   read_fix_word_table(stream, tfm->depth_table, tfm->depth_size);
   read_fix_word_table(stream, tfm->italic_table, tfm->italic_size);
 
-  // skip to parameters.
-  stream->seek(stream->offset() + (nl + nk + ne) * 4);
+  // read ligkern
+  for (unsigned i = 0; i < nl; i++) {
+    uint32_t step;
+    if (stream->read_uint32(step))
+      assert(false && "Unexpected EOF! Internal state error.");
+    tfm->ligkern_table[i] = ligkern_step::from_be_word(step);
+  }
+
+  read_fix_word_table(stream, tfm->kern_table, tfm->kern_size);
+
+  // skip extensible; not implemented.
+  stream->seek(stream->offset() + ne * 4);
 
   // now read parameters.
   if (np < 7)
@@ -254,6 +268,8 @@ TFM::~TFM(void) {
   delete[] height_table;
   delete[] depth_table;
   delete[] italic_table;
+  delete[] ligkern_table;
+  delete[] kern_table;
   delete[] char_info;
 }
 

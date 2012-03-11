@@ -26,7 +26,6 @@
 #include <Render/sp.h>
 #include <Util/UniquePtr.h>
 
-
 namespace tex {
 
 class Font;
@@ -64,6 +63,7 @@ private:
   
   // sizes of respective tables
   uint16_t width_size, height_size, depth_size, italic_size;
+  uint16_t ligkern_size, kern_size;
   
   // The bounds of the character information in the TFM.
   uint16_t char_lower, char_upper;
@@ -78,13 +78,35 @@ private:
 
   uint8_t seven_bit_safe_flag;
   uint8_t font_face;
-    
+  
   // The actual information.
   char_info_word *char_info;
   fix_word *width_table;
   fix_word *height_table;
   fix_word *depth_table;
   fix_word *italic_table;
+
+  fix_word *kern_table;
+
+public:
+  struct ligkern_step {
+    uint8_t skip;
+    uint8_t next_char;
+    uint8_t op;
+    uint8_t remainder;
+
+    static ligkern_step from_be_word(uint32_t word) {
+      ligkern_step step;
+      step.skip = word>> 24;
+      step.next_char =word >> 16;
+      step.op = word >> 8;
+      step.remainder = word;
+      return step;
+    }
+  };
+private:
+
+  ligkern_step *ligkern_table;
 
   fix_word f_slant, f_space, f_space_stretch, f_space_shrink;
   fix_word f_x_height, f_quad, f_extra_space;
@@ -93,9 +115,11 @@ private:
 private:
   // The default private constructor used in init_from_file
   TFM(void) : width_size(0), height_size(0), depth_size(0), italic_size(0),
-              char_lower(1), char_upper(0), file_checksum(0), design_size(1<<20),
-              seven_bit_safe_flag(0), font_face(0), char_info(NULL),
-              width_table(NULL), height_table(NULL), depth_table(NULL), italic_table(NULL) {}
+            ligkern_size(0), kern_size(0), char_lower(1), char_upper(0),
+            file_checksum(0), design_size(1<<20), seven_bit_safe_flag(0),
+            font_face(0), char_info(NULL), width_table(NULL),
+            height_table(NULL), depth_table(NULL), italic_table(NULL),
+            ligkern_table(NULL) {}
               
   static void read_header(UniquePtr<BinaryInputStream> &stream, uint16_t lh, UniquePtr<TFM> &tfm);
   static void read_char_info(UniquePtr<BinaryInputStream> &stream, UniquePtr<TFM> &tfm);
