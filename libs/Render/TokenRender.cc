@@ -31,38 +31,58 @@ void TokenRender::init_from_file(const char *path, const Codec *codec, UniquePtr
 
 #define M(mode, cmd) ((mode) << 16 | (cmd))
 
-static inline void end_paragraph(UniquePtr<State> &state, RenderState &render) {
+static inline void end_paragraph(UniquePtr<State> &state) {
   simple_line_break(state);
-  render.set_mode(VMODE);
+  state->render().set_mode(VMODE);
 }
 
-static inline void begin_paragraph(UniquePtr<State> &state, RenderState &render) {
+static inline void begin_paragraph(UniquePtr<State> &state) {
+  RenderState &render = state->render();
   glue_node glue = skip_glue(state->mem(PARINDENT_CODE).scaled);
   RenderNode *indent = RenderNode::new_glue(glue);
-  render.push();
-  render.set_mode(HMODE);
-  render.set_head(indent);
-  render.set_tail(indent);
+  if (render.mode() == HMODE) {
+    render.append(indent);
+  } else {
+    assert(render.mode() == VMODE && "attempted to begin paragraph in "
+                                     "non-VMODE, non-HMODE.");
+    render.push();
+    render.set_mode(HMODE);
+    render.set_head(indent);
+    render.set_tail(indent);
+  }
 }
 
 void TokenRender::render_input(UniquePtr<State> &state) {
   Token token;
-  RenderState &r_state = state->render();
+  RenderState &render = state->render();
   bool stop = false;
+  SmallVector<unichar, 16> chars;
   while (!stop) {
     input->peek_token(state, token);
-    uint32_t mode_cmd = (r_state.mode() << 16 | (token.cmd & 0xFFFF));
+    uint32_t mode_cmd = (render.mode() << 16 | (token.cmd & 0xFFFF));
     switch(mode_cmd) {
       case M(VMODE, CC_LETTER):
       case M(VMODE, CC_OTHER_CHAR): {
         // enter horizontal mode.
-        begin_paragraph(state, r_state);
+        begin_paragraph(state);
         break; // read the character again, this time in HMODE
       }
       case M(HMODE, CC_LETTER):
       case M(HMODE, CC_OTHER_CHAR): {
-        input->consume_token(state, token);
-        r_state.append(RenderNode::char_rnode(token.uc, state->font()));
+        // first, read characters into the char array.
+        while (token.cmd == CC_LETTER || token.cmd == CC_OTHER_CHAR) {
+          input->consume_token(state, token);
+          chars.push(token.uc);
+          input->peek_token(state, token);
+        }
+        // now we've hit a new token. token is invalidated, but we can still
+        // process valid characters we've already read in. The font has not
+        // changed, so we can append char/kerning/ligature nodes as normal.
+        uint32_t font = state->font();
+        for (unsigned idx = 0; idx < chars.entries(); idx++) {
+          render.append(RenderNode::char_rnode(chars[idx], font));
+        }
+        chars.reset();
         break;
       }
       case M(HMODE, CC_SPACER): {
@@ -71,13 +91,13 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         RenderNode *node = RenderNode::glue_rnode(
           font.space(), font.space_stretch(), font.space_shrink(),
           GLUE_NORMAL, GLUE_NORMAL);
-        state->render().append(node);
+        render.append(node);
         break;
       }
       case M(HMODE, CC_PAR_END): {
         input->consume_token(state, token);
-        if (r_state.head())
-          end_paragraph(state, r_state);
+        if (render.head())
+          end_paragraph(state);
         state->builder().build_page(state);
         break;
       }

@@ -114,6 +114,10 @@ public:
     return heap[i];
   }
 
+  T &operator[](size_t idx) {
+    return get(idx);
+  }
+
   void push(T &elem) {
     append(elem);
   }
@@ -125,6 +129,13 @@ public:
 
   T &head(void) {
     return stack[elems - 1];
+  }
+
+
+  // "resets" the vector to empty.
+  // just sets entries to 0; no allocation changes are needed.
+  void reset(void) {
+    elems = 0;
   }
 };
 
