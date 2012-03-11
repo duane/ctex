@@ -59,6 +59,7 @@ State::State(void) {
   tex_mem[PARINDENT_CODE].scaled = scaled(18 << 16);
   tex_mem[BASELINE_SKIP_CODE].scaled = scaled(12 << 16);
   tex_mem[SPLIT_TOP_SKIP_CODE].scaled = scaled(12 << 16);
+  tex_mem[SPLIT_MAX_DEPTH_CODE].scaled = scaled(4 << 16);
 
   // initialize box registers.
   for (unsigned i = 0; i < 256; i++) {

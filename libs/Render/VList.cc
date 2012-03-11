@@ -15,6 +15,7 @@
 *****************************************************************************/
 
 #include <Render/VList.h>
+#include <Render/Box.h>
 
 using namespace tex;
 
@@ -148,4 +149,42 @@ RenderNode *tex::vert_break(UniquePtr<State> &state, RenderNode *vlist,
   }
   assert(false && "Unreachable code! Please fix.");
   return NULL;
+}
+
+RenderNode *tex::vsplit(UniquePtr<State> &state, uint8_t box_reg, sp height) {
+  sp best_height_plus_depth;
+  RenderNode *box_n =
+    reinterpret_cast<RenderNode*>(state->mem(BOX_BEGIN_CODE + box_reg).ptr);
+  if (!box_n)
+    return NULL;
+  assert(box_n->type == VBOX_NODE && "Expected VBOX, got unknown node type.");
+  // Should handle mark stuff here, but marks are currently unimplemented.
+
+  RenderNode *after_split
+    = vert_break(state, box_n->box.list, height,
+                 state->mem(SPLIT_MAX_DEPTH_CODE).scaled,
+                 best_height_plus_depth);
+
+  // now unlink the two boxes.
+  RenderNode *p = box_n->box.list;
+  while (p) {
+    if (p->link == after_split)
+      p->link = NULL;
+    p = p->link;
+  }
+  // prune the second page.
+  after_split = prune_page_top(state, after_split);
+
+  // fetch the first page again.
+  p = box_n->box.list;
+
+  delete box_n;
+  if (!after_split)
+    state->mem(BOX_BEGIN_CODE + box_reg).ptr = NULL;
+  else
+    state->mem(BOX_BEGIN_CODE + box_reg).ptr
+      = reinterpret_cast<void*>(vpack(state, after_split, scaled(0),
+                                      ADDITIONAL));
+  return vpackage(state, p, height, state->mem(SPLIT_MAX_DEPTH_CODE).scaled,
+                  EXACTLY);
 }
