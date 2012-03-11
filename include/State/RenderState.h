@@ -17,6 +17,7 @@
 #ifndef __INCLUDE_STATE_RENDERSTATE_H__
 #define __INCLUDE_STATE_RENDERSTATE_H__
 
+#include <Render/Page.h>
 #include <Render/RenderNode.h>
 #include <State/Word.h>
 #include <Util/SmallVector.h>
@@ -35,6 +36,12 @@ enum {
   IN_MMODE,
 };
 
+enum page_contents {
+  PAGE_EMPTY,
+  PAGE_INSERTS,
+  PAGE_CONTENT,
+};
+
 class RenderState {
 private:
   RenderState(const RenderState &);
@@ -48,13 +55,15 @@ private:
     word aux;
   };
 
+  Page *p_head, *p_tail;
+
   SmallVector<frame, RENDER_STACK_SIZE> stack;
   frame cur_frame;
   uint8_t r_mode;
 
 private:
 public:
-  RenderState(void) : stack(), r_mode(NO_MODE) {}
+  RenderState(void) : p_head(NULL), p_tail(NULL), stack(), r_mode(NO_MODE) {}
 
   RenderNode *head(void) {
     return cur_frame.head;
@@ -62,6 +71,8 @@ public:
 
   void set_head(RenderNode *node) {
     cur_frame.head = node;
+    if (!node || !cur_frame.tail)
+      cur_frame.tail = node;
   }
 
   RenderNode *tail(void) {
@@ -117,6 +128,21 @@ public:
   bool empty(void) {
     return cur_frame.head == NULL;
   }
+
+  Page *page_head(void) {
+    return p_head;
+  }
+
+  void ship_page(Page *page) {
+    if (!p_head)
+      p_head = p_tail = page;
+    else {
+      p_tail->link = page;
+      p_tail = page;
+      p_tail->link = NULL;
+    }
+  }
+
 };
 
 }

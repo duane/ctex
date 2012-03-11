@@ -4,5 +4,6 @@ add_library(Render
             Box.cc
             RenderNode.cc
             SimpleBreaker.cc
+            SimplePageBuilder.cc
             TokenRender.cc
             VList.cc)
