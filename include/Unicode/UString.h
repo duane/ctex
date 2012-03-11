@@ -94,6 +94,10 @@ public:
     assert (i < length && "Accessed a character out of bounds.");
     return raw[i];
   }
+
+  unichar operator[](size_t i) const {
+    return get(i);
+  }
   
   /** Returns the internal character buffer. */
   unichar *get_raw() const {

@@ -254,6 +254,7 @@ void TFM::populate_font(Font &font, int32_t at) const {
   font.set_x_height(sp_from_fixed(f_x_height) * z);
   font.set_quad(sp_from_fixed(f_quad) * z);
   font.set_extra_space(sp_from_fixed(f_extra_space) * z);
+  font.set_at(z);
 }
 
 void TFM::load_font(const char *path, Font &font, int32_t at) {
@@ -273,3 +274,19 @@ TFM::~TFM(void) {
   delete[] char_info;
 }
 
+
+set_op *TFM::set_string(UString &string, sp at) const {
+  set_op *head, *tail;
+  head = tail = NULL;
+  for (unsigned i = 0; i < string.get_length(); i++) {
+    set_op *op = new set_op;
+    *op = set_op::set(string[i]);
+    if (!head) {
+      head = tail = op;
+    } else {
+      tail->link = op;
+      tail = op;
+    }
+  }
+  return head;
+}

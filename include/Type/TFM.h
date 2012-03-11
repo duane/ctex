@@ -24,6 +24,8 @@
 #include <IO/BinaryInputStream.h>
 #include <IO/Path.h>
 #include <Render/sp.h>
+#include <Type/TypeSetter.h>
+#include <Unicode/UString.h>
 #include <Util/UniquePtr.h>
 
 namespace tex {
@@ -252,6 +254,8 @@ public:
   static sp sp_from_fixed(fix_word f) {
     return scaled(f >> 4);
   }
+
+set_op *set_string(UString &string, sp at) const;
 
   /** Deconstructor frees allocated memory. */
   ~TFM(void);

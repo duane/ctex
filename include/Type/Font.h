@@ -36,6 +36,7 @@ private:
   SmallIntMap<CharInfo, 256> char_map;
   sp f_space, f_space_stretch, f_space_shrink;
   sp f_x_height, f_quad, f_extra_space;
+  sp at_size;
   UniquePtr<TFM> tfm;
 
 public:
@@ -54,6 +55,10 @@ public:
 
   const SmallIntMap<CharInfo, 256> &map(void) const {
     return char_map;
+  }
+
+  void set_at(sp at) {
+    at_size = at;
   }
 
   void set(unichar uc, const CharInfo &info) {
@@ -124,6 +129,10 @@ public:
 
   UniquePtr<TFM> &get_tfm(void) {
     return tfm;
+  }
+
+  set_op *set_string(UString &string) {
+    return tfm->set_string(string, at_size);
   }
 };
 //typedef SmallIntMap<CharInfo, 256> Font;

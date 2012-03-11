@@ -56,7 +56,6 @@ void TokenRender::render_input(UniquePtr<State> &state) {
   Token token;
   RenderState &render = state->render();
   bool stop = false;
-  SmallVector<unichar, 16> chars;
   while (!stop) {
     input->peek_token(state, token);
     uint32_t mode_cmd = (render.mode() << 16 | (token.cmd & 0xFFFF));
@@ -69,20 +68,31 @@ void TokenRender::render_input(UniquePtr<State> &state) {
       }
       case M(HMODE, CC_LETTER):
       case M(HMODE, CC_OTHER_CHAR): {
+        MutableUString mut_string;
         // first, read characters into the char array.
         while (token.cmd == CC_LETTER || token.cmd == CC_OTHER_CHAR) {
           input->consume_token(state, token);
-          chars.push(token.uc);
+          mut_string.add(token.uc);
           input->peek_token(state, token);
         }
         // now we've hit a new token. token is invalidated, but we can still
         // process valid characters we've already read in. The font has not
         // changed, so we can append char/kerning/ligature nodes as normal.
         uint32_t font = state->font();
-        for (unsigned idx = 0; idx < chars.entries(); idx++) {
-          render.append(RenderNode::char_rnode(chars[idx], font));
+        set_op *op_list = state->metrics(font).set_string(mut_string);
+        while (op_list) {
+          if (op_list->type == OP_SET)
+            render.append(RenderNode::char_rnode(op_list->code, font));
+          else {
+            assert(op_list->adjustment.v == 0
+                   && "Found vertical adjust in typeset op");
+            glue_node adjust_glue = skip_glue(op_list->adjustment.h);
+            render.append(RenderNode::new_glue(adjust_glue));
+          }
+          set_op *next = op_list->link;
+          delete op_list;
+          op_list = next;
         }
-        chars.reset();
         break;
       }
       case M(HMODE, CC_SPACER): {
@@ -108,7 +118,7 @@ void TokenRender::render_input(UniquePtr<State> &state) {
       case M(HMODE, CC_STOP): {
         input->consume_token(state, token);
         // leave HMODE
-        simple_line_break(state);
+        end_paragraph(state);
         state->builder().build_page(state);
         state->builder().ship_page(state);
         stop = true;
