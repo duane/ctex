@@ -32,12 +32,9 @@ void DVI::init_with_file(const char *path, UniquePtr<DVI> &result) {
 
 void DVI::write_header(UniquePtr<State> &state) {
   writer->pre(2, 25400000u, 473628672u, 1000, " CTeX");
-  int32_t c[10] = {1};
-  writer->bop(c);
 }
 
 void DVI::write_post(UniquePtr<State> &state) {
-  writer->eop();
   writer->post(25400000u, 473628672u, 1000, 43725786, 30785863);
   for (SmallIntMap<uint32_t, 64>::iterator iter = tex_dvi_font_map.begin();
        iter != tex_dvi_font_map.end(); iter++) {
@@ -168,10 +165,20 @@ void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
 
 void DVI::render(UniquePtr<State> &state) {
   write_header(state);
-  RenderNode *head = state->render().head();
-  while (head) {
-    write_node(state, head);
-    head = head->link;
+  Page *page = state->render().page_head();
+  int32_t page_count = 0;
+  while (page) {
+    page_count += 1;
+    int32_t c[10] = {0};
+    c[0] = page_count;
+    writer->bop(c);
+    RenderNode *node = page->head;
+    while (node) {
+      write_node(state, node);
+      node = node->link;
+    }
+    writer->eop();
+    page = page->link;
   }
   write_post(state);
 }

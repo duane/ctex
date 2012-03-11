@@ -21,6 +21,7 @@
 
 
 #include <Render/RenderNode.h>
+#include <Render/SimplePageBuilder.h>
 #include <State/Codes.h>
 #include <State/CommandSequence.h>
 #include <State/RenderState.h>
@@ -74,6 +75,7 @@ private:
   Memory tex_mem;
 
   RenderState r_state;
+  SimplePageBuilder p_builder;
 public:
   /** @return The category code of the given character.*/
   uint8_t catcode(unichar uc) const {
@@ -134,6 +136,10 @@ public:
     UString uname = UString(name);
     CommandSequence cs = {UString(uname), cmd, operand};
     cs_map.set(uname, cs);
+  }
+
+  SimplePageBuilder &builder(void) {
+    return p_builder;
   }
 
   static void init(UniquePtr<State> &result);

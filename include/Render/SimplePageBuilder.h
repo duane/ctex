@@ -31,7 +31,6 @@ private:
   SimplePageBuilder &operator=(const SimplePageBuilder&);
 
 private:
-  void ship_page(UniquePtr<State> &state);
 
 public:
   RenderNode *p_head, *p_tail;
@@ -43,6 +42,7 @@ public:
                           break_height(scaled(0)), break_head(NULL),
                           break_tail(NULL) {}
 
+  void ship_page(UniquePtr<State> &state);
   void build_page(UniquePtr<State> &state);
 };
 

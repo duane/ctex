@@ -4,20 +4,26 @@
 #include <Render/RenderNode.h>
 #include <State/State.h>
 
+#include <iostream>
+
 using namespace tex;
 
 void SimplePageBuilder::ship_page(UniquePtr<State> &state) {
-  Page *page = new Page();
-  page->head = p_head;
-  page->tail = p_tail;
   while (break_head) {
     RenderNode *next = break_head->link;
     delete break_head;
     break_head = next;
   }
-  break_tail = NULL;
+  if (!p_head)
+    return;
+  Page *page = new Page();
+  page->head = p_head;
+  page->tail = p_tail;
+  p_head = p_tail = break_tail = NULL;
   cur_height = scaled(0);
+  break_height = scaled(0);
   state->render().ship_page(page);
+  std::cout << "Shipped out." << std::endl;
 }
 
 void SimplePageBuilder::build_page(UniquePtr <State> &state) {
@@ -33,6 +39,7 @@ void SimplePageBuilder::build_page(UniquePtr <State> &state) {
         render.set_head(p->link);
         if (!break_head) {
           break_head = break_tail = p;
+          p->link = NULL;
         } else {
           break_tail->link = p;
           break_tail = p;
@@ -45,6 +52,7 @@ void SimplePageBuilder::build_page(UniquePtr <State> &state) {
           ship_page(state);
         render.set_head(p->link);
         delete p;
+        break;
       }
       //case RULE_NODE:
       case VBOX_NODE:
@@ -54,21 +62,29 @@ void SimplePageBuilder::build_page(UniquePtr <State> &state) {
           ship_page(state);
         }
         if (break_head) {
-          if (p_head)
+          if (p_head) {
             p_tail->link = break_head;
-          else
-            p_head = p_tail = break_head;
-          break_tail->link = p;
-          render.set_head(p->link);
+            p_tail = break_tail;
+          } else {
+            p_head = break_head;
+            p_tail = break_tail;
+          }
+          break_head = NULL;
+          break_tail = NULL;
+          render.set_head(p->link);          
+          p_tail->link = p;
+          p_tail = p;
           p->link = NULL;
-          break_head = break_tail = NULL;
           cur_height += break_height + box_height;
+          break_height = scaled(0);
         } else {
-          if (p_head)
+          if (p_head) {
             p_tail->link = p;
-          else
+            p_tail = p;
+          } else
             p_head = p_tail = p;
           render.set_head(p->link);
+          p->link = NULL;
           cur_height += box_height;
         }
         break;

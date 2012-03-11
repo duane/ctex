@@ -78,6 +78,7 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         input->consume_token(state, token);
         if (r_state.head())
           end_paragraph(state, r_state);
+        state->builder().build_page(state);
         break;
       }
       case M(VMODE, CC_PAR_END): {
@@ -88,11 +89,14 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         input->consume_token(state, token);
         // leave HMODE
         simple_line_break(state);
+        state->builder().build_page(state);
+        state->builder().ship_page(state);
         stop = true;
         break;
       }
       case M(VMODE, CC_STOP): {
         input->consume_token(state, token);
+        state->builder().ship_page(state);
         stop = true;
         break;
       }

@@ -123,6 +123,7 @@ public:
       cur_frame.tail = node;
       cur_frame.tail->link = NULL;
     }
+    node->link = NULL;
   }
 
   bool empty(void) {
