@@ -31,7 +31,6 @@ struct set_adjust {
 };
 
 struct set_op {
-  set_op *link;
   set_op_type type;
   union {
     set_adjust adjustment;
@@ -40,7 +39,6 @@ struct set_op {
 
   static set_op set(uint32_t code) {
     set_op op;
-    op.link = NULL;
     op.type = OP_SET;
     op.code = code;
     return op;
@@ -48,7 +46,6 @@ struct set_op {
 
   static set_op adjust(sp h, sp v) {
     set_op op;
-    op.link = NULL;
     op.type = OP_ADJUST;
     op.adjustment.h = h;
     op.adjustment.v = v;

@@ -79,20 +79,22 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         // process valid characters we've already read in. The font has not
         // changed, so we can append char/kerning/ligature nodes as normal.
         uint32_t font = state->font();
-        set_op *op_list = state->metrics(font).set_string(mut_string);
-        while (op_list) {
-          if (op_list->type == OP_SET)
-            render.append(RenderNode::char_rnode(op_list->code, font));
+        std::list<set_op> *op_list =
+          state->metrics(font).set_string(mut_string);
+        for (std::list<set_op>::iterator iter = op_list->begin();
+                                         iter != op_list->end();
+                                         iter++) {
+          set_op op = *iter;
+          if (op.type == OP_SET)
+            render.append(RenderNode::char_rnode(op.code, font));
           else {
-            assert(op_list->adjustment.v == 0
+            assert(op.adjustment.v == 0
                    && "Found vertical adjust in typeset op");
-            glue_node adjust_glue = skip_glue(op_list->adjustment.h);
+            glue_node adjust_glue = skip_glue(op.adjustment.h);
             render.append(RenderNode::new_glue(adjust_glue));
           }
-          set_op *next = op_list->link;
-          delete op_list;
-          op_list = next;
         }
+        delete op_list;
         break;
       }
       case M(HMODE, CC_SPACER): {

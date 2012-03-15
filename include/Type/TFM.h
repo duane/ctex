@@ -28,6 +28,8 @@
 #include <Unicode/UString.h>
 #include <Util/UniquePtr.h>
 
+#include <list>
+
 namespace tex {
 
 class Font;
@@ -268,16 +270,16 @@ public:
     return scaled(f >> 4);
   }
 
-  set_op *set_string(UString &string, sp at) const;
+  std::list<set_op> *set_string(UString &string, sp at) const;
 
 public:
   class ligkern_iterator {
   public:
-    TFM *tfm;
+    const TFM *tfm;
     bool end_flag;
     unsigned step_num, step_idx;    
 
-    ligkern_iterator(TFM *tfm) : tfm(tfm) {}
+    ligkern_iterator(const TFM *tfm) : tfm(tfm) {}
 
     void operator++(int) {
       tfm->advance_lk_iterator(*this);
@@ -301,7 +303,7 @@ public:
   };
 
 public:
-  ligkern_iterator lk_begin(uint32_t code) {
+  ligkern_iterator lk_begin(uint32_t code) const {
     assert(char_lower <= code && code <= char_upper && "Attempted to get "
            "iterator for character code outside the bounds of the font.");
     char_info_word info = char_info[code - char_lower];
@@ -328,13 +330,13 @@ public:
     return iter;
   }
 
-  ligkern_iterator lk_end(void) {
+  ligkern_iterator lk_end(void) const {
     ligkern_iterator iter(this);
     iter.end_flag = true;
     return iter;
   }
 
-  void advance_lk_iterator(ligkern_iterator &iter) {
+  void advance_lk_iterator(ligkern_iterator &iter) const {
     assert(!iter.end_flag && "Attempted to advance ligkern iterator "
           "past end.");
     assert(iter.step_idx < ligkern_size && "Attempted to access ligkern entry"

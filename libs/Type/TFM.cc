@@ -18,6 +18,7 @@
 
 #include <Type/TFM.h>
 #include <Type/Font.h>
+#include <Util/SmallVector.h>
 
 using namespace tex;
 
@@ -275,18 +276,76 @@ TFM::~TFM(void) {
 }
 
 
-set_op *TFM::set_string(UString &string, sp at) const {
-  set_op *head, *tail;
-  head = tail = NULL;
+struct character {
+  uint32_t code;
+  unsigned idx, extent;
+};
+
+std::list<set_op> *TFM::set_string(UString &string, sp at) const {
+  std::list<set_op> *ops = new std::list<set_op>();
+
+  SmallVector<character, 16> lig_stack;
+
   for (unsigned i = 0; i < string.get_length(); i++) {
-    set_op *op = new set_op;
-    *op = set_op::set(string[i]);
-    if (!head) {
-      head = tail = op;
-    } else {
-      tail->link = op;
-      tail = op;
+    unsigned idx = string.get_length() - i - 1;
+    character c;
+    c.code = string[idx];
+    c.idx = idx;
+    c.extent = 1;
+    lig_stack.push(c);
+  }
+
+  while (lig_stack.entries() >= 2) { // while there are characters to process.
+    character lhs = lig_stack.pop();
+    character rhs = lig_stack.pop();
+    for (TFM::ligkern_iterator iter = lk_begin(lhs.code);
+                               iter != lk_end();
+                               iter++) {
+      TFM::ligkern_step step = iter.step();
+      if (rhs.code == step.next_char) {
+        if (step.op >= 128) {
+          if (step.remainder >= kern_size)
+            throw new GenericDiag("kerning program referenced kerning value "
+                                  "outside the bounds of the kerning table.",
+                                  DIAG_TFM_PARSE_ERR, BLAME_HERE);
+          // kerning step.
+          ops->push_back(set_op::set(lhs.code));
+          sp kern = sp_from_fixed(kerning(step.remainder)) * at;
+          ops->push_back(set_op::adjust(kern, scaled(0)));
+          lig_stack.push(rhs);
+        } else {
+          // ligature step.
+          character ch;
+          ch.code = step.remainder;
+          unsigned c = step.op & 0x1;
+          unsigned b = (step.op >> 1) & 0x1;
+          unsigned a = step.op >> 2;
+          if (a > (b + c))
+            throw new GenericDiag("Invalid ligature op found.",
+                                  DIAG_TFM_PARSE_ERR, BLAME_HERE);
+          if (c)
+            lig_stack.push(rhs);
+          if (a - b) {
+            ops->push_back(set_op::set(ch.code));
+          } else {
+            lig_stack.push(ch);
+          }
+          if (b) {
+            if (a) {
+              ops->push_back(set_op::set(lhs.code));
+            } else {
+              lig_stack.push(lhs);
+            }
+          }
+        }
+        break; // end the program.
+      }
     }
   }
-  return head;
+
+  if (lig_stack.entries()) {
+    character last_ch = lig_stack.pop();
+    ops->push_back(set_op::set(last_ch.code));
+  }
+  return ops;
 }

@@ -131,7 +131,7 @@ public:
     return tfm;
   }
 
-  set_op *set_string(UString &string) {
+  std::list<set_op> *set_string(UString &string) {
     return tfm->set_string(string, at_size);
   }
 };
