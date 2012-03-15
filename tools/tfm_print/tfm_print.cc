@@ -16,6 +16,7 @@
 
 #include <cstdio>
 
+#include <Config.h>
 #include <Type/TFM.h>
 
 using namespace tex;
@@ -55,6 +56,7 @@ static inline void print_tfm(UniquePtr<TFM> &tfm) {
   printf("\tFile checksum: %8X\n", tfm->checksum());
   printf("\tDesign size: ");
   print_fix_word(tfm->design());
+  /*
   printf("\n\tCharacter convention: %s\n", tfm->character_convention());
   printf("\n\tFont face: ");
   print_face_info(tfm->face());
@@ -69,10 +71,10 @@ static inline void print_tfm(UniquePtr<TFM> &tfm) {
   printf("\n\tem: ");
   print_fix_word(tfm->quad());
   printf("\n\tExtra space: ");
-  print_fix_word(tfm->extra_space());
+  print_fix_word(tfm->extra_space());*/
   printf("\n");
   for (unsigned c = tfm->lower_char(); c <= tfm->upper_char(); c++) {
-    printf("\n\tCharacter code %2X", c);
+    printf("\n\tCharacter code %02X", c);
     if (c >= ' ' && c <= '~')
       printf(" ('%c')", c);
     printf(":\n");
@@ -85,6 +87,20 @@ static inline void print_tfm(UniquePtr<TFM> &tfm) {
     printf("\n\t\tItalic: ");
     print_fix_word(tfm->italic(c));
     printf("\n");
+    for (TFM::ligkern_iterator iter = tfm->lk_begin(c);
+                               iter != tfm->lk_end();
+                               iter++) {
+      TFM::ligkern_step step = iter.step();
+      printf("\t\t\tStep %d: ", iter.step_num);
+      if (step.op < 128)
+        printf("ligature: %02X+%02X => %02X\n", c, step.next_char,
+               step.remainder);
+      else {
+        printf("kerning: ");
+        print_fix_word(tfm->kerning(step.remainder));
+        printf(" between %02X and %02X.\n", c, step.next_char);
+      }
+    }
   }
   printf("\n");
 }
@@ -92,11 +108,15 @@ static inline void print_tfm(UniquePtr<TFM> &tfm) {
 int main(int argc, char **argv) {
   UniquePtr<TFM> tfm;
   try {
-    TFM::init_from_file("cmr10.tfm", tfm);
+    Path path;
+    path.set_area(FONT_AREA);
+    path.set_file("cmr10");
+    path.set_ext("tfm");
+    TFM::init_from_file(path.full_path().c_str(), tfm);
+    print_tfm(tfm);
   } catch (Diag *diag) {
     diag->print();
     return 1;
   }
-  print_tfm(tfm);
   return 0;
 }

@@ -166,8 +166,8 @@ public:
       return curr_entry->val;
     }
 
-    iterator(const HashMap<K, V> *map_ref, uint32_t bucket, HashEntry *entry) :
-             map(map_ref), curr_bucket(bucket), curr_entry(entry) {}
+    iterator(const HashMap<K, V> *map_ref, uint32_t bucket, HashEntry *entry)
+             : map(map_ref), curr_bucket(bucket), curr_entry(entry) {}
 
   };
 
@@ -186,7 +186,7 @@ public:
   }
 
 public:
-  iterator begin() const {
+  iterator begin(void) const {
     if (table_entries == 0)
       return end();
     iterator iter = iterator(this, 0, table[0]);
@@ -195,7 +195,7 @@ public:
     return iter;
   }
 
-  iterator end() const {
+  iterator end(void) const {
     return iterator(this, table_size, NULL);
   }
 

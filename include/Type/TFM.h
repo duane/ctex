@@ -100,7 +100,7 @@ public:
     static ligkern_step from_be_word(uint32_t word) {
       ligkern_step step;
       step.skip = word>> 24;
-      step.next_char =word >> 16;
+      step.next_char = word >> 16;
       step.op = word >> 8;
       step.remainder = word;
       return step;
@@ -210,6 +210,18 @@ public:
     char_info_word info = char_info[c - char_lower];
     return italic_table[info.italic_index];
   }
+
+  ligkern_step ligkern(uint16_t idx) const {
+    assert(idx < ligkern_size && "Requested character outside bounds of TFM "
+           "ligkern table.");
+    return ligkern_table[idx];
+  }
+
+  fix_word kerning(uint16_t idx) const {
+    assert(idx < kern_size && "Requested kerning outside bounds of TFM "
+           "kerning table.");
+    return kern_table[idx];
+  }
   
   fix_word space(void) const {
     return f_space;
@@ -235,6 +247,7 @@ public:
     return f_extra_space;
   }
 
+
   Path path(void) const {
     return tfm_path;
   }
@@ -255,12 +268,97 @@ public:
     return scaled(f >> 4);
   }
 
-set_op *set_string(UString &string, sp at) const;
+  set_op *set_string(UString &string, sp at) const;
+
+public:
+  class ligkern_iterator {
+  public:
+    TFM *tfm;
+    bool end_flag;
+    unsigned step_num, step_idx;    
+
+    ligkern_iterator(TFM *tfm) : tfm(tfm) {}
+
+    void operator++(int) {
+      tfm->advance_lk_iterator(*this);
+    }
+
+    TFM::ligkern_step step(void) {
+      return tfm->ligkern(step_idx);
+    }
+
+    bool operator==(ligkern_iterator other) {
+      if (end_flag && other.end_flag)
+        return true;
+      return (end_flag == other.end_flag && step_idx == other.step_idx);
+    }
+
+    bool operator!=(ligkern_iterator other) {
+      if (end_flag && other.end_flag)
+        return false;
+      return !(end_flag == other.end_flag && step_idx == other.step_idx);
+    }
+  };
+
+public:
+  ligkern_iterator lk_begin(uint32_t code) {
+    assert(char_lower <= code && code <= char_upper && "Attempted to get "
+           "iterator for character code outside the bounds of the font.");
+    char_info_word info = char_info[code - char_lower];
+    ligkern_iterator iter(this);
+    if (info.tag == 0x1) {
+      if (info.remainder >= ligkern_size)
+        throw new GenericDiag("TFM referenced ligkern step that exceeded the "
+                              "bounds of the internal table.",
+                              DIAG_TFM_PARSE_ERR, BLAME_HERE);
+      iter.end_flag = false;
+      iter.step_num = 0;
+      iter.step_idx = info.remainder;
+      // check for a >255 ligkern program.
+      ligkern_step first = ligkern_table[info.remainder];
+      if (first.skip > 128) {
+        iter.step_idx = (256 * first.op + first.remainder);
+        if (iter.step_idx >= ligkern_size)
+          throw new GenericDiag("TFM referenced ligkern step that exceeded "
+                                "the bounds of the internal table.",
+                                DIAG_TFM_PARSE_ERR, BLAME_HERE);
+      }
+    } else
+      iter.end_flag = true;
+    return iter;
+  }
+
+  ligkern_iterator lk_end(void) {
+    ligkern_iterator iter(this);
+    iter.end_flag = true;
+    return iter;
+  }
+
+  void advance_lk_iterator(ligkern_iterator &iter) {
+    assert(!iter.end_flag && "Attempted to advance ligkern iterator "
+          "past end.");
+    assert(iter.step_idx < ligkern_size && "Attempted to access ligkern entry"
+           "outside the bounds of ligkern table while advancing the ligkern "
+           "iterator.");
+    ligkern_step curr = ligkern_table[iter.step_idx];
+
+    if (curr.skip >= 128)
+      iter.end_flag = true;
+    else {
+      uint16_t next = iter.step_idx + curr.skip + 1;
+      if (next >= ligkern_size)  {
+        throw new GenericDiag("TFM file referenced ligkern step outside the "
+                              "bounds of the ligkern table.",
+                              DIAG_TFM_PARSE_ERR, BLAME_HERE);
+      }
+      iter.step_idx = next;
+      iter.step_num += 1;
+    }
+  }
 
   /** Deconstructor frees allocated memory. */
   ~TFM(void);
 };
-
 }
 
 #endif  // __INCLUDE_TYPE_TFM_H__
