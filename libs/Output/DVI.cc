@@ -147,7 +147,7 @@ void DVI::write_lig(UniquePtr<State> &state, RenderNode *node) {
 
 void DVI::write_kern(UniquePtr<State> &state, RenderNode *node) {
   assert(node->type == KERN_NODE && "Attempted to render wrong node type.");
-  writer->right(node->kern.width);
+  writer->right(node->kern.width.i64);
 }
 
 void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
