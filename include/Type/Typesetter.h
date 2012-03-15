@@ -22,19 +22,22 @@
 namespace tex {
 
 enum set_op_type {
-  OP_ADJUST,
+  OP_KERN,
   OP_SET,
+  OP_SET_LIG,
 };
 
-struct set_adjust {
-  sp h, v;
+struct set_ligature {
+  uint32_t code;
+  uint32_t idx, extent;
 };
 
 struct set_op {
   set_op_type type;
   union {
-    set_adjust adjustment;
+    sp kern;
     uint32_t code;
+    set_ligature lig;
   };
 
   static set_op set(uint32_t code) {
@@ -44,11 +47,21 @@ struct set_op {
     return op;
   }
 
-  static set_op adjust(sp h, sp v) {
+  static set_op set_lig(uint32_t code, uint32_t idx, uint32_t extent) {
     set_op op;
-    op.type = OP_ADJUST;
-    op.adjustment.h = h;
-    op.adjustment.v = v;
+    set_ligature lig;
+    lig.code = code;
+    lig.idx = idx;
+    lig.extent = extent;
+    op.type = OP_SET_LIG;
+    op.lig = lig;
+    return op;
+  }
+
+  static set_op kerning(sp kern) {
+    set_op op;
+    op.type = OP_KERN;
+    op.kern = kern;
     return op;
   }
 };

@@ -275,10 +275,15 @@ TFM::~TFM(void) {
   delete[] char_info;
 }
 
-
 struct character {
   uint32_t code;
   unsigned idx, extent;
+
+  set_op get_op(void) {
+    if (extent > 1)
+      return set_op::set_lig(code, idx, extent);
+    return set_op::set(code);
+  }
 };
 
 std::list<set_op> *TFM::set_string(UString &string, sp at) const {
@@ -298,11 +303,13 @@ std::list<set_op> *TFM::set_string(UString &string, sp at) const {
   while (lig_stack.entries() >= 2) { // while there are characters to process.
     character lhs = lig_stack.pop();
     character rhs = lig_stack.pop();
+    bool found_match = false;
     for (TFM::ligkern_iterator iter = lk_begin(lhs.code);
                                iter != lk_end();
                                iter++) {
       TFM::ligkern_step step = iter.step();
       if (rhs.code == step.next_char) {
+        found_match = true;
         if (step.op >= 128) {
           if (step.remainder >= kern_size)
             throw new GenericDiag("kerning program referenced kerning value "
@@ -311,28 +318,38 @@ std::list<set_op> *TFM::set_string(UString &string, sp at) const {
           // kerning step.
           ops->push_back(set_op::set(lhs.code));
           sp kern = sp_from_fixed(kerning(step.remainder)) * at;
-          ops->push_back(set_op::adjust(kern, scaled(0)));
+          ops->push_back(set_op::kerning(kern));
           lig_stack.push(rhs);
         } else {
           // ligature step.
           character ch;
           ch.code = step.remainder;
+          ch.extent = 0;
           unsigned c = step.op & 0x1;
           unsigned b = (step.op >> 1) & 0x1;
           unsigned a = step.op >> 2;
           if (a > (b + c))
             throw new GenericDiag("Invalid ligature op found.",
                                   DIAG_TFM_PARSE_ERR, BLAME_HERE);
+
           if (c)
             lig_stack.push(rhs);
+          else {
+            ch.idx = rhs.idx;
+            ch.extent = rhs.extent;
+          }
+          if (!b) {
+            ch.idx = lhs.idx;
+            ch.extent += lhs.extent;
+          }
           if (a - b) {
-            ops->push_back(set_op::set(ch.code));
+            ops->push_back(ch.get_op());
           } else {
             lig_stack.push(ch);
           }
           if (b) {
             if (a) {
-              ops->push_back(set_op::set(lhs.code));
+              ops->push_back(lhs.get_op());
             } else {
               lig_stack.push(lhs);
             }
@@ -341,11 +358,16 @@ std::list<set_op> *TFM::set_string(UString &string, sp at) const {
         break; // end the program.
       }
     }
+    if (!found_match) {
+      ops->push_back(lhs.get_op());
+      lig_stack.push(rhs);
+    }
+
   }
 
   if (lig_stack.entries()) {
     character last_ch = lig_stack.pop();
-    ops->push_back(set_op::set(last_ch.code));
+    ops->push_back(last_ch.get_op());
   }
   return ops;
 }

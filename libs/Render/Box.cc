@@ -31,14 +31,15 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
   sp total_shrink[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
   while (p) {
     if (p->type == CHAR_NODE) {
-      while (p && p->type == CHAR_NODE) {
-        char_node &ch = p->ch;
-        const CharInfo &info = state->metrics(ch.font).get(ch.ch);
-        hbox.width += info.width;
-        if (info.height > hbox.height)
-          hbox.height = info.height;
-        if (info.depth > hbox.depth)
-          hbox.depth = info.depth;
+      while (p && (p->type == CHAR_NODE || p->type == LIG_NODE)) {
+        sp width = p->width(state);
+        sp height = p->height(state);
+        sp depth = p->depth(state);
+        hbox.width += width;
+        if (height > hbox.height)
+          hbox.height = height;
+        if (depth > hbox.depth)
+          hbox.depth = depth;
         p = p->link;
       }
     }
@@ -63,6 +64,10 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
         glue_node &glue = p->glue;
         total_stretch[glue.stretch_order] += glue.stretch;
         total_shrink[glue.shrink_order] += glue.shrink;
+        break;
+      }
+      case KERN_NODE: {
+        hbox.width += p->width(state);
         break;
       }
       default:
@@ -147,8 +152,9 @@ RenderNode *tex::vpackage(UniquePtr<State> &state, RenderNode *vlist,
 
   while (p) {
     switch(p->type) {
-      case CHAR_NODE: {
-        assert(false && "Found char node in vlist.");
+      case CHAR_NODE:
+      case LIG_NODE: {
+        assert(false && "Found char/lig node in vlist.");
       }
       //case RULE_NODE:
       case VBOX_NODE:

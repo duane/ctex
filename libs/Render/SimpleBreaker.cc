@@ -52,17 +52,6 @@ extern void tex::simple_line_break(UniquePtr<State> &state) {
   // now leave horizontal mode, so we can append lines as hboxes to the vertical list.
   state->render().pop();
 
-  /*  Now go through the horizontal list, keeping note of the last
-   *  possible breakpoint. When we exceed the size the line is supposed to be, or we
-   *  run into the end of the line, we remove the line from the last breakpoint, and
-   *  append that to the vertical list as appropriate. Finally, we unlink that line
-   *  from the horizontal list.
-   */
-  // So, in summary, cur_node is the node we are currently evaluating.
-  // break_node is the last place where we know we could have broken the line
-  //            and been inside the target line size. break_node.
-  // newline is the place where the next line begins; or, the first non-glue
-  //         after finding a break_node.
   RenderNode *cur_node, *break_node, *newline_node, *prev_node;
   cur_node = head;
   prev_node = NULL;
@@ -94,7 +83,9 @@ extern void tex::simple_line_break(UniquePtr<State> &state) {
       }
       case VBOX_NODE:
       // case RULE_NODE:
-      case CHAR_NODE: {
+      case CHAR_NODE:
+      case KERN_NODE:
+      case LIG_NODE: {
         if (skip_spaces) {
           newline_node = cur_node;
           newline_width = cur_node->width(state);
@@ -136,13 +127,17 @@ extern void tex::simple_line_break(UniquePtr<State> &state) {
     // finalize the last line.
     if (newline_node)
       finalize_line(state, head, tail);
-    else { // we have glue and nothing after; break before the glue.
-      RenderNode *glue = break_node->link;
-      finalize_line(state, head, break_node);
-      while (glue) {
-        RenderNode *node = glue->link;
-        delete glue;
-        glue = node;
+    else {
+      if (break_node) {
+        RenderNode *glue = break_node->link;
+        finalize_line(state, head, break_node);
+        while (glue) {
+          RenderNode *node = glue->link;
+          delete glue;
+          glue = node;
+        }
+      } else {
+        finalize_line(state, head, tail);
       }
     }
   }

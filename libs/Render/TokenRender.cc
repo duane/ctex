@@ -17,6 +17,7 @@
 #include <Render/TokenRender.h>
 
 #include <cstdio>
+#include <iostream>
 
 #include <Render/SimpleBreaker.h>
 
@@ -87,12 +88,23 @@ void TokenRender::render_input(UniquePtr<State> &state) {
           set_op op = *iter;
           if (op.type == OP_SET)
             render.append(RenderNode::char_rnode(op.code, font));
-          else {
-            assert(op.adjustment.v == 0
-                   && "Found vertical adjust in typeset op");
-            glue_node adjust_glue = skip_glue(op.adjustment.h);
-            render.append(RenderNode::new_glue(adjust_glue));
+          else if (op.type == OP_SET_LIG) {
+            RenderNode *inner_head = NULL, *inner_tail = NULL;
+            for (unsigned i = 0; i < op.lig.extent; i++) {
+              RenderNode *inner_char = RenderNode::char_rnode(
+                                       mut_string[op.lig.idx + i], font);
+              if (inner_head == NULL)
+                inner_head = inner_tail = inner_char;
+              else {
+                inner_tail->link = inner_char;
+                inner_tail = inner_char;
+                inner_tail->link = NULL;
+              }
+            }
+            render.append(RenderNode::new_lig(op.lig.code, font, inner_head));
           }
+          else
+            render.append(RenderNode::new_kern(KERN_NORMAL, op.kern));
         }
         delete op_list;
         break;

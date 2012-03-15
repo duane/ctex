@@ -139,6 +139,17 @@ void DVI::write_glue(UniquePtr<State> &state, RenderNode *node) {
     writer->right(node->width(state).i64);
 }
 
+void DVI::write_lig(UniquePtr<State> &state, RenderNode *node) {
+  assert(node->type == LIG_NODE && "Attempted to render wrong node type.");
+  switch_font(state, node->lig.font);
+  writer->set_char(node->lig.code);
+}
+
+void DVI::write_kern(UniquePtr<State> &state, RenderNode *node) {
+  assert(node->type == KERN_NODE && "Attempted to render wrong node type.");
+  writer->right(node->kern.width);
+}
+
 void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
   switch (node->type){
     case CHAR_NODE: {
@@ -155,6 +166,14 @@ void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
     }
     case GLUE_NODE: {
       write_glue(state, node);
+      break;
+    }
+    case LIG_NODE: {
+      write_lig(state, node);
+      break;
+    }
+    case KERN_NODE: {
+      write_kern(state, node);
       break;
     }
     default:

@@ -21,9 +21,17 @@
 
 namespace tex {
 
+class RenderNode;
+
 struct char_node {
-  uint8_t ch;
-  uint8_t font;
+  uint32_t ch;
+  uint32_t font;
+};
+
+struct lig_node {
+  uint32_t code;
+  uint32_t font;
+  RenderNode *inner_chars;
 };
 
 }

@@ -24,6 +24,7 @@
 #include <Render/Char.h>
 #include <Render/Box.h>
 #include <Render/Glue.h>
+#include <Render/Kerning.h>
 #include <Render/Penalty.h>
 #include <Type/Font.h>
 #include <Util/UniquePtr.h>
@@ -38,6 +39,8 @@ enum {
   VBOX_NODE,
   CHAR_NODE,
   GLUE_NODE,
+  KERN_NODE,
+  LIG_NODE,
   PENALTY_NODE,
 };
 
@@ -51,6 +54,8 @@ public:
     glue_node glue;
     box_node box;
     penalty_node penalty;
+    kern_node kern;
+    lig_node lig;
   };
 
   sp width(UniquePtr<State> &state) const;
@@ -81,6 +86,22 @@ public:
     node->link = NULL;
     node->type = GLUE_NODE;
     node->glue = g;
+    return node;
+  }
+
+  static RenderNode *new_kern(kern_type type, sp width) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type = KERN_NODE;
+    node->kern = (kern_node){type, width};
+    return node;
+  }
+
+  static RenderNode *new_lig(uint32_t code, uint32_t font, RenderNode *inner)
+  {
+    RenderNode *node = new RenderNode;
+    node->type = LIG_NODE;
+    node->lig = (lig_node){code, font, inner};
     return node;
   }
 
@@ -115,6 +136,8 @@ public:
     node->box = box;
     return node;
   }
+
+  void print(UniquePtr<State> &state, unsigned indent);
 };
 
 }  // namespace tex

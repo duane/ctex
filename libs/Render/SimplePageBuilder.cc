@@ -23,7 +23,6 @@ void SimplePageBuilder::ship_page(UniquePtr<State> &state) {
   cur_height = scaled(0);
   break_height = scaled(0);
   state->render().ship_page(page);
-  std::cout << "Shipped out." << std::endl;
 }
 
 void SimplePageBuilder::build_page(UniquePtr <State> &state) {
