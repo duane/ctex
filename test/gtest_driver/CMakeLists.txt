@@ -1,0 +1,1 @@
+add_library(ctex_gtest_main ctex_gtest_main.cc)
