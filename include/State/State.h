@@ -24,6 +24,7 @@
 #include <Render/SimplePageBuilder.h>
 #include <State/Codes.h>
 #include <State/CommandSequence.h>
+#include <State/EQTB.h>
 #include <State/RenderState.h>
 #include <tex/codes.h>
 #include <Type/Font.h>
@@ -46,6 +47,8 @@ struct CommandSequenceEntry {
   CommandSequenceEntry *next;
 };
 
+typedef EQTB<MAX_INTERNAL_CODE> tex_eqtb;
+
 /** The kernel of the tex runtime.
  * This class holds all the state for the program used in parsing files.
  * It stores the category codes for each character.
@@ -62,8 +65,6 @@ private:
   State(void);
 
 private:
-  uint32_t curr_font;
-
   // the actual state.
   uint8_t ccode[128];
   
@@ -72,7 +73,7 @@ private:
   
   SmallVector<Font, 64> fonts;
 
-  Memory tex_mem;
+  tex_eqtb the_eqtb;
 
   RenderState r_state;
   SimplePageBuilder p_builder;
@@ -84,16 +85,8 @@ public:
     return ccode[uc];
   }
 
-  uint32_t font(void) const {
-    return curr_font;
-  }
-
-  void set_font(uint32_t font) {
-    curr_font = font;
-  }
-
   Font &metrics(const uint32_t f) {
-    return fonts.get(f);
+    return fonts[f];
   }
 
   ~State(void) {
@@ -128,8 +121,8 @@ public:
     return r_state;
   }
 
-  word &mem(uint32_t code) {
-    return tex_mem[code];
+  tex_eqtb &eqtb(void) {
+    return the_eqtb;
   }
 
   void primitive(const char *name, CommandCode cmd, word operand) {

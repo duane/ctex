@@ -17,7 +17,7 @@
 #include <Output/DVI.h>
 #include <State/State.h>
 #include <Render/TokenRender.h>
-#include <Unicode/Codecs/UTF8.h>
+#include <Unicode/Codecs/ASCII.h>
 
 using namespace tex;
 
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   UniquePtr<State> state;
   UniquePtr<TokenRender> render;
   UniquePtr<DVI> output;
-  Codec *codec = new UTF8Codec();
+  Codec *codec = new ASCIICodec();
 
   try {
     State::init(state);

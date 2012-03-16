@@ -304,10 +304,12 @@ std::list<set_op> *TFM::set_string(UString &string, sp at) const {
     character lhs = lig_stack.pop();
     character rhs = lig_stack.pop();
     bool found_match = false;
+
     for (TFM::ligkern_iterator iter = lk_begin(lhs.code);
                                iter != lk_end();
                                iter++) {
       TFM::ligkern_step step = iter.step();
+
       if (rhs.code == step.next_char) {
         found_match = true;
         if (step.op >= 128) {
@@ -362,7 +364,6 @@ std::list<set_op> *TFM::set_string(UString &string, sp at) const {
       ops->push_back(lhs.get_op());
       lig_stack.push(rhs);
     }
-
   }
 
   if (lig_stack.entries()) {

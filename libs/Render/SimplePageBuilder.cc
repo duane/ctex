@@ -29,7 +29,7 @@ void SimplePageBuilder::build_page(UniquePtr <State> &state) {
   RenderState &render = state->render();
   assert(render.mode() == VMODE && "Called build_page in invalid mode.");
 
-  sp target_height = state->mem(VSIZE_CODE).scaled;
+  sp target_height = state->eqtb()[VSIZE_CODE].scaled;
   while (render.head()) {
     RenderNode *p = render.head();
     switch (p->type) {

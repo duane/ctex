@@ -30,7 +30,7 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
   sp total_stretch[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
   sp total_shrink[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
   while (p) {
-    if (p->type == CHAR_NODE) {
+    if (p->type == CHAR_NODE || p->type == LIG_NODE) {
       while (p && (p->type == CHAR_NODE || p->type == LIG_NODE)) {
         sp width = p->width(state);
         sp height = p->height(state);

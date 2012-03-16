@@ -155,6 +155,10 @@ int TokenInputStream::peek_token(UniquePtr<State> &state, Token &result) {
       parser_state = STATE_MIDLINE;
       break;
     }
+    case CC_LBRACE:
+    case CC_RBRACE: {
+      break;
+    }
     case CC_SPACER: {
       if (parser_state == STATE_SKIP_SPACES || parser_state == STATE_NEWLINE) {
         return peek_token(state, result);
@@ -192,6 +196,7 @@ int TokenInputStream::peek_token(UniquePtr<State> &state, Token &result) {
     }
     case CC_INVALID:
     default: {
+      
       throw new BlameSourceDiag("Found an invalid character.", DIAG_PARSE_ERR, BLAME_HERE, BlameSource(name, peek_tok.line, peek_tok.line, peek_tok.col, peek_tok.col));
     }
   }

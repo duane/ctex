@@ -132,10 +132,10 @@ public:
   }
 
   std::list<set_op> *set_string(UString &string) {
+    assert(tfm && "Attempted to set a string with a NULL tfm.");
     return tfm->set_string(string, at_size);
   }
 };
-//typedef SmallIntMap<CharInfo, 256> Font;
 
 }  // namespace tex
 

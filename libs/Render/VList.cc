@@ -37,7 +37,8 @@ RenderNode *tex::prune_page_top(UniquePtr<State> &state, RenderNode *vlist) {
       case VBOX_NODE: {
         // we found the beginning of the page.
         head = p;
-        glue_node split_top_skip_glue = skip_glue(state->mem(SPLIT_TOP_SKIP_CODE).scaled);
+        glue_node split_top_skip_glue =
+          skip_glue(state->eqtb()[SPLIT_TOP_SKIP_CODE].scaled);
         RenderNode *split_top_skip = RenderNode::new_glue(split_top_skip_glue);
         split_top_skip->link = head;
         return split_top_skip;
@@ -153,8 +154,9 @@ RenderNode *tex::vert_break(UniquePtr<State> &state, RenderNode *vlist,
 
 RenderNode *tex::vsplit(UniquePtr<State> &state, uint8_t box_reg, sp height) {
   sp best_height_plus_depth;
+  tex_eqtb &eqtb = state->eqtb();
   RenderNode *box_n =
-    reinterpret_cast<RenderNode*>(state->mem(BOX_BEGIN_CODE + box_reg).ptr);
+    reinterpret_cast<RenderNode*>(eqtb[BOX_BEGIN_CODE + box_reg].ptr);
   if (!box_n)
     return NULL;
   assert(box_n->type == VBOX_NODE && "Expected VBOX, got unknown node type.");
@@ -162,7 +164,7 @@ RenderNode *tex::vsplit(UniquePtr<State> &state, uint8_t box_reg, sp height) {
 
   RenderNode *after_split
     = vert_break(state, box_n->box.list, height,
-                 state->mem(SPLIT_MAX_DEPTH_CODE).scaled,
+                 eqtb[SPLIT_MAX_DEPTH_CODE].scaled,
                  best_height_plus_depth);
 
   // now unlink the two boxes.
@@ -180,11 +182,11 @@ RenderNode *tex::vsplit(UniquePtr<State> &state, uint8_t box_reg, sp height) {
 
   delete box_n;
   if (!after_split)
-    state->mem(BOX_BEGIN_CODE + box_reg).ptr = NULL;
+    eqtb[BOX_BEGIN_CODE + box_reg].ptr = NULL;
   else
-    state->mem(BOX_BEGIN_CODE + box_reg).ptr
+    eqtb[BOX_BEGIN_CODE + box_reg].ptr
       = reinterpret_cast<void*>(vpack(state, after_split, scaled(0),
                                       ADDITIONAL));
-  return vpackage(state, p, height, state->mem(SPLIT_MAX_DEPTH_CODE).scaled,
+  return vpackage(state, p, height, eqtb[SPLIT_MAX_DEPTH_CODE].scaled,
                   EXACTLY);
 }

@@ -39,7 +39,7 @@ static inline void end_paragraph(UniquePtr<State> &state) {
 
 static inline void begin_paragraph(UniquePtr<State> &state) {
   RenderState &render = state->render();
-  glue_node glue = skip_glue(state->mem(PARINDENT_CODE).scaled);
+  glue_node glue = skip_glue(state->eqtb()[PARINDENT_CODE].scaled);
   RenderNode *indent = RenderNode::new_glue(glue);
   if (render.mode() == HMODE) {
     render.append(indent);
@@ -79,7 +79,7 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         // now we've hit a new token. token is invalidated, but we can still
         // process valid characters we've already read in. The font has not
         // changed, so we can append char/kerning/ligature nodes as normal.
-        uint32_t font = state->font();
+        uint32_t font = state->eqtb()[FONT_CODE].u64;
         std::list<set_op> *op_list =
           state->metrics(font).set_string(mut_string);
         for (std::list<set_op>::iterator iter = op_list->begin();
@@ -111,7 +111,7 @@ void TokenRender::render_input(UniquePtr<State> &state) {
       }
       case M(HMODE, CC_SPACER): {
         input->consume_token(state, token);
-        Font &font = state->metrics(state->font());
+        Font &font = state->metrics(state->eqtb()[FONT_CODE].u64);
         RenderNode *node = RenderNode::glue_rnode(
           font.space(), font.space_stretch(), font.space_shrink(),
           GLUE_NORMAL, GLUE_NORMAL);
@@ -151,7 +151,31 @@ void TokenRender::render_input(UniquePtr<State> &state) {
       case M(IN_HMODE, CC_SET_FONT):
       case M(IN_MMODE, CC_SET_FONT): {
         input->consume_token(state, token);
-        state->set_font(token.cs->operand.i64);
+        state->eqtb()[FONT_CODE].u64 = token.cs->operand.i64;
+        break;
+      }
+      case M(VMODE, CC_LBRACE):
+      case M(HMODE, CC_LBRACE):
+      case M(MMODE, CC_LBRACE):
+      case M(IN_VMODE, CC_LBRACE):
+      case M(IN_HMODE, CC_LBRACE):
+      case M(IN_MMODE, CC_LBRACE): {
+        input->consume_token(state, token);
+        state->eqtb().enter_grouping();
+        break;
+      }
+      case M(VMODE, CC_RBRACE):
+      case M(HMODE, CC_RBRACE):
+      case M(MMODE, CC_RBRACE):
+      case M(IN_VMODE, CC_RBRACE):
+      case M(IN_HMODE, CC_RBRACE):
+      case M(IN_MMODE, CC_RBRACE): {
+        input->consume_token(state, token);
+        tex_eqtb &eqtb = state->eqtb();
+        if (eqtb.level() <= 1)
+          throw new GenericDiag("No matching brace for right bracket",
+                                DIAG_PARSE_ERR, BLAME_HERE);
+        eqtb.leave_grouping();
         break;
       }
       default: {

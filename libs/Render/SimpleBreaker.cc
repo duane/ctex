@@ -24,18 +24,19 @@ static inline void finalize_line(UniquePtr<State> &state, RenderNode *head,
                                  RenderNode *tail) {
   // first, throw left and right skip in there.
   assert(head && "Attempted to package a NULL line.");
-  glue_node left_glue = skip_glue(state->mem(LEFT_SKIP_CODE).scaled);
+  tex_eqtb &eqtb = state->eqtb();
+  glue_node left_glue = skip_glue(eqtb[LEFT_SKIP_CODE].scaled);
   RenderNode *left = RenderNode::new_glue(left_glue);
-  glue_node right_glue = skip_glue(state->mem(RIGHT_SKIP_CODE).scaled);
+  glue_node right_glue = skip_glue(eqtb[RIGHT_SKIP_CODE].scaled);
   RenderNode *right = RenderNode::new_glue(right_glue);
   left->link = head;
   tail->link = right;
-  RenderNode *hbox = hpack(state,left, state->mem(HSIZE_CODE).scaled,
+  RenderNode *hbox = hpack(state,left, eqtb[HSIZE_CODE].scaled,
                            EXACTLY);
   // now append it to the vertical list.
   state->render().append(hbox);
   sp height = hbox->height(state);
-  sp baseline = state->mem(BASELINE_SKIP_CODE).scaled;
+  sp baseline = eqtb[BASELINE_SKIP_CODE].scaled;
   if (baseline > height) {
     glue_node baseline_glue = skip_glue(baseline - height);
     RenderNode *baseline = RenderNode::new_glue(baseline_glue);
@@ -52,15 +53,17 @@ extern void tex::simple_line_break(UniquePtr<State> &state) {
   // now leave horizontal mode, so we can append lines as hboxes to the vertical list.
   state->render().pop();
 
+  tex_eqtb &eqtb = state->eqtb();
+
   RenderNode *cur_node, *break_node, *newline_node, *prev_node;
   cur_node = head;
   prev_node = NULL;
   break_node = NULL;
   newline_node = NULL;
 
-  sp left_skip = state->mem(LEFT_SKIP_CODE).scaled;
-  sp right_skip = state->mem(RIGHT_SKIP_CODE).scaled;
-  sp max_width = state->mem(HSIZE_CODE).scaled - left_skip - right_skip;
+  sp left_skip = eqtb[LEFT_SKIP_CODE].scaled;
+  sp right_skip = eqtb[RIGHT_SKIP_CODE].scaled;
+  sp max_width = eqtb[HSIZE_CODE].scaled - left_skip - right_skip;
   sp cur_width = scaled(0), break_width = scaled(0), newline_width = scaled(0);
   uint32_t line = 0;
   bool skip_spaces = true;

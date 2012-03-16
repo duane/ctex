@@ -17,8 +17,6 @@
 #ifndef __INCLUDE_STATE_CODES_H__
 #define __INCLUDE_STATE_CODES_H__
 
-#include <State/RegisterFile.h>
-
 namespace tex {
 
 enum {
@@ -31,11 +29,10 @@ enum {
   SPLIT_MAX_DEPTH_CODE,
   VSIZE_CODE,
   HSIZE_CODE,
+  FONT_CODE,
   BOX_BEGIN_CODE,
   MAX_INTERNAL_CODE = BOX_BEGIN_CODE+256,
 };
-
-typedef RegisterFile<MAX_INTERNAL_CODE> Memory;
 
 }
 

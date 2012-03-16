@@ -40,8 +40,7 @@ namespace tex {
 template <class T, int n>
 class SmallVector {
 private:
-  SmallVector(const SmallVector &);
-  SmallVector &operator=(const SmallVector &);
+  typedef SmallVector<T, n> this_vector;
 
 private:
   T stack[n];
@@ -50,6 +49,23 @@ private:
   size_t elems;
 
 public:
+
+  SmallVector(this_vector &other)
+              : heap(NULL), allocated(n), elems(0) {
+    for (unsigned i = 0; i < other.entries(); i++) {
+      T &elem = other[i];
+      push(elem);
+    }
+  }
+
+  this_vector operator=(this_vector &other) {
+    this_vector vec;
+    for (unsigned i = 0; i < other.entries(); i++) {
+      vec.push(other[i]);
+    }
+    return vec;
+  }
+
   SmallVector(void) : heap(NULL), allocated(n), elems(0) {
   }
 
@@ -100,13 +116,7 @@ public:
     elems += 1;
   }
 
-  /**
-   *  Fetches an element from the vector.
-   *  @param i The index of the vector; must be less than the
-   *  number of elements in the vector.
-   *  @return A reference to the element in the vector.
-   */
-  T &get(size_t i) {
+  T &operator[](size_t i) {
     assert(i < elems && "Attempted to access an element out of bounds.");
     if (allocated <= n)
       return stack[i];
@@ -114,16 +124,23 @@ public:
     return heap[i];
   }
 
-  T &operator[](size_t idx) {
-    return get(idx);
-  }
+  /*const T &operator[](size_t i) const {
+    assert(i < elems && "Attempted to access an element out of bounds.");
+    if (allocated <= n)
+      return stack[i];
+    assert(heap && "Attempted to access NULL heap.");
+    return heap[i];
+  }*/
 
   void push(T &elem) {
     append(elem);
   }
 
   T pop(void) {
+    assert(elems && "Attempted to pop an empty stack.");
     elems -= 1;
+    if (allocated > n)
+      return heap[elems];
     return stack[elems];
   }
 

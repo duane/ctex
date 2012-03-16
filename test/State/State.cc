@@ -14,4 +14,5 @@ TEST(StateTest, EmptyState) {
   ASSERT_EQ((uint8_t)CC_SPACER, state->catcode(' '));
   ASSERT_EQ((uint8_t)CC_COMMENT, state->catcode('%'));
   ASSERT_EQ((uint8_t)CC_INVALID, state->catcode(127));
+  ASSERT_EQ(1u, state->eqtb()[FONT_CODE].u64);
 }
