@@ -50,6 +50,7 @@ private:
   void write_lig(UniquePtr<State> &state, RenderNode *node);
   void write_kern(UniquePtr<State> &state, RenderNode *node);
   void write_node(UniquePtr<State> &state, RenderNode *node);
+  void write_rule(UniquePtr<State> &state, RenderNode *node);
 
   uint32_t define_font(UniquePtr<State> &state, uint32_t tex_font);
   void switch_font(UniquePtr<State> &state, uint32_t tex_font);

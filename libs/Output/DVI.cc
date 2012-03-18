@@ -150,6 +150,11 @@ void DVI::write_kern(UniquePtr<State> &state, RenderNode *node) {
   writer->right(node->kern.width.i64);
 }
 
+void DVI::write_rule(UniquePtr<State> &state, RenderNode *node) {
+  assert(node->type == RULE_NODE && "Attempted to render wrong node type.");
+  writer->put_rule(node->rule.width, node->rule.height);
+}
+
 void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
   switch (node->type){
     case CHAR_NODE: {
@@ -174,6 +179,10 @@ void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
     }
     case KERN_NODE: {
       write_kern(state, node);
+      break;
+    }
+    case RULE_NODE: {
+      write_rule(state, node);
       break;
     }
     default:
