@@ -34,6 +34,8 @@ using namespace tex;
       return state->metrics(lig.font).get(lig.code).width;
     case KERN_NODE:
       return kern.width;
+    case RULE_NODE:
+      return rule.width;
     default:
       assert(false && "Attempted to fetch width of widthless node.");
   }
@@ -52,6 +54,8 @@ sp RenderNode::height(UniquePtr<State> &state) const {
       return state->metrics(ch.font).get(ch.ch).height;
     case LIG_NODE:
       return state->metrics(lig.font).get(lig.code).height;
+    case RULE_NODE:
+      return rule.height;
     default:
       assert(false && "Attempted to fetch width of heightless node.");
   }
