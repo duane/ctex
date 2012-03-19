@@ -26,6 +26,7 @@
 #include <Render/Glue.h>
 #include <Render/Kerning.h>
 #include <Render/Penalty.h>
+#include <Render/Rule.h>
 #include <Type/Font.h>
 #include <Util/UniquePtr.h>
 
@@ -41,6 +42,7 @@ enum {
   GLUE_NODE,
   KERN_NODE,
   LIG_NODE,
+  RULE_NODE,
   PENALTY_NODE,
 };
 
@@ -56,6 +58,7 @@ public:
     penalty_node penalty;
     kern_node kern;
     lig_node lig;
+    rule_node rule;
   };
 
   sp width(UniquePtr<State> &state) const;
@@ -94,6 +97,14 @@ public:
     node->link = NULL;
     node->type = KERN_NODE;
     node->kern = (kern_node){type, width};
+    return node;
+  }
+
+  static RenderNode *new_rule(sp width, sp height) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type = RULE_NODE;
+    node->rule = (rule_node){width, height};
     return node;
   }
 

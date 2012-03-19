@@ -85,7 +85,7 @@ extern void tex::simple_line_break(UniquePtr<State> &state) {
         break;
       }
       case VBOX_NODE:
-      // case RULE_NODE:
+      case RULE_NODE:
       case CHAR_NODE:
       case KERN_NODE:
       case LIG_NODE: {

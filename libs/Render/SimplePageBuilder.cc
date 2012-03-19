@@ -53,7 +53,7 @@ void SimplePageBuilder::build_page(UniquePtr <State> &state) {
         delete p;
         break;
       }
-      //case RULE_NODE:
+      case RULE_NODE:
       case VBOX_NODE:
       case HBOX_NODE: {
         sp box_height = p->height(state);
