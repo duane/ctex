@@ -152,7 +152,7 @@ void DVI::write_kern(UniquePtr<State> &state, RenderNode *node) {
 
 void DVI::write_rule(UniquePtr<State> &state, RenderNode *node) {
   assert(node->type == RULE_NODE && "Attempted to render wrong node type.");
-  writer->put_rule(node->rule.width, node->rule.height);
+  writer->put_rule(node->rule.height.i64, node->rule.width.i64);
 }
 
 void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {

@@ -100,6 +100,14 @@ public:
     return node;
   }
 
+  static RenderNode *new_penalty(penalty_node penalty) {
+    RenderNode *node = new RenderNode;
+    node->link = NULL;
+    node->type = PENALTY_NODE;
+    node->penalty = penalty;
+    return node;
+  }
+
   static RenderNode *new_rule(sp width, sp height) {
     RenderNode *node = new RenderNode;
     node->link = NULL;

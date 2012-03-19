@@ -46,7 +46,13 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
     if (!p)
       break;
     switch (p->type) {
-      // case RULE_NODE:
+      case RULE_NODE: {
+        sp height = p->height(state);
+        if (height > hbox.height)
+          hbox.height = height;
+        hbox.width += p->width(state);
+        break;
+      }
       case HBOX_NODE:
       case VBOX_NODE: {
         hbox.width += p->width(state);
@@ -156,7 +162,13 @@ RenderNode *tex::vpackage(UniquePtr<State> &state, RenderNode *vlist,
       case LIG_NODE: {
         assert(false && "Found char/lig node in vlist.");
       }
-      //case RULE_NODE:
+      case RULE_NODE: {
+        nat_height += p->height(state);
+        sp width;
+        if (width > box.width)
+          box.width = width;
+        break;
+      }
       case VBOX_NODE:
       case HBOX_NODE: {
         box_node inner_box = p->box;

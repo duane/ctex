@@ -1,190 +1,169 @@
+/*****************************************************************************
+*  Copyright (c) 2012 Duane Ryan Bailey                                      *
+*                                                                            *
+*  Licensed under the Apache License, Version 2.0 (the "License");           *
+*  you may not use this file except in compliance with the License.          *
+*  You may obtain a copy of the License at                                   *
+*                                                                            *
+*      http://www.apache.org/licenses/LICENSE-2.0                            *
+*                                                                            *
+*  Unless required by applicable law or agreed to in writing, software       *
+*  distributed under the License is distributed on an "AS IS" BASIS,         *
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  *
+*  See the License for the specific language governing permissions and       *
+*  limitations under the License.                                            *
+*****************************************************************************/
 
 #include <Render/LineBreaker.h>
 #include <Render/RenderNode.h>
+#include <Render/SimpleBreaker.h>
 
-using namespace tex;
 
-/*
- * This algorithm taken from Part 38-39 of the TeXBook,
- * "Breaking paragraphs into lines." This code is a straightforward port.
- */
 
-enum fitness {
-  VERY_LOOSE_FIT = 0,
+#include <list>
+
+
+namespace tex {
+
+typedef scaled_vector<6> delta;
+
+enum active_type {
+  ACTIVE,
+  DELTA,
+};
+
+enum fitness_type {
+  VERY_LOOSE_FIT,
   LOOSE_FIT,
   DECENT_FIT,
   TIGHT_FIT,
+  MAX_FITNESS,
 };
-
-enum active_type {
-  UNHYPH = 0,
-  HYPH,
-  DELTA
-};
-
-const uint32_t AWFUL_BAD = 0x3fffffff;
 
 struct passive_node {
-  passive_node *link;
-  RenderNode *cur_break;
-  passive_node *prev_break;
-};
-
-struct active_break {
-  passive_node *break_node;
-  uint32_t line_number;
-  fitness fit;
-  int32_t total_demerits;
-};
-
-
-enum {
-  DELTA_NORMAL = 0,
-  DELTA_PT,
-  DELTA_FIL,
-  DELTA_FILL,
-  DELTA_FILLL,
-  DELTA_SHRINK
-}
-
-struct delta {
-  sp width[6];
-
-  void operator+=(const delta &other) {
-    for (unsigned i = 0; i < 6; i++) {
-      width[i] = width[i] + other.width[i];
-    }
-  }
-
-  delta operator+(const delta &other) {
-    delta result;
-    for (unsigned i = 0; i < 6; i++){
-      result.width[i] = width[i] + other.width[i];
-    }
-    return result;
-  }
-
-  delta operator-(const delta &other) {
-    delta result;
-    for (unsigned i = 0; i < 6; i++) {
-      result.width[i] = width[i] - other.width[i];
-    }
-    return result;
-  }
+  RenderNode *break_point;
+  passive_node *parent;
+  std::list<passive_node> children;
 };
 
 struct active_node {
-  active_node *link;
   active_type type;
+  active_node *link;
   union {
-    active_break a;
-    delta del;
+    struct {
+      passive_node *passive;
+      fitness_type fitness;
+      int32_t demerits;
+    };
+    sp delta[6];
   };
 };
 
-class LineBreaker {
-public:
-  active_node *active;
-  active_node *last_active;
-  passive_node *passive;
-  RenderNode *cur_p, *prev_p;
-
-  delta active_width; 
-  delta cur_active_width;
-  delta background;
-  delta break_width;
-
-  uint32_t minimum_demerits;
-  uint32_t minimal_demerits[4];
-
-  uint32_t threshold; // maximum badness.
-
-  uint32_t easy_line;
-  uint32_t old_l; // "old" line-number.
-
-  LineBreaker(RenderNode *hlist) :
-    active(NULL), last_active(NULL), passive(NULL), cur_p(hlist) {
-    for (unsigned i = 0; i < 6; i++) {
-      cur_active_width[i] = scaled(0);
-    }
-
-    // demerits
-    minimum_demerits = AWFUL_BAD;
-    for (unsigned i = 0; i < sizeof(minimal_demerits); i++) {
-      minimal_demerits[i] = AWFUL_BAD;
-    }
-  }
-
-  void try_break(active_type break_type) {
-    active_node *cur_a, *prev_a, *prev_prev_a;
-    RenderNode *s;
-
-    bool no_break_yet = true;
-    while (true) {
-      cur_a = prev_a->link;
-      if (cur_a->active_type == DELTA) {
-        cur_active_width += cur_a->del;
-        prev_prev_a = prev_a;
-        prev_a = prev_prev_a->link;
-        continue;
-      }
-
-      uint32_t l = cur_a->line_number;
-      if (l > old_l) {
-        if (minimum_demerits < AWFUL_BAD &&
-            (old_l != easy_line || cur_a == last_active)) {
-          // Create new active nodes for the best feasible breaks just found.
-          if (no_break_yet) {
-            // Compute the values of break_width.
-            no_break_yet = false;
-            break_width = background;
-            s = cur_p;
-            while (s) {
-              bool done = false;
-              if (s->type == GLUE_NODE) {
-                  // Subtract glue from break_width
-                  glue_node &glue = s->glue;
-                  break_width.width[DELTA_NORMAL] -= glue.width;
-                  break_width.width[DELTA_PT + glue.stretch_order] -= glue.stretch;
-                  break_width.width[DELTA_SHRINK] -= glue.shrink;
-            } else if (s->type == PENALTY_NODE)
-              continue;
-            else
-              break;
-          }
-
-          // insert a delta node to prepare for breaks at cur_p.
-          
-
-          if (r == last_active)
-            return;
-        }
-      }
-    }
-  }
-
-  void break(UniquePtr<State> &state) {
-    RenderNode *temp_head = state->render().head();
-    if (!temp_head)
-      throw new GenericDiag("Attempted to break NULL list.",
-                            DIAG_RENDER_ERR, BLAME_HERE);
-
-
-    // Find optimal breakpoints.
-    uint32_t threshold = state->mem(PRETOLERANCE_CODE);
-    // only single pass for now.
-    // while (true) {
-    cur_p = temp_head;
-    bool auto_breaking = true;
-    prev_p = cur_p;
-    while (cur_p && active->link != NULL)
-
-    //} // while (true)
-
-  }
+enum {
+  DELTA_WIDTH = 0,
+  DELTA_NORMAL,
+  DELTA_FIL,
+  DELTA_FILL,
+  DELTA_FILLL,
+  DELTA_SHRINK,
 };
 
-void line_break(UniquePtr<State> &state) {
-  LineBreaker breaker(state->render().head());
-  breaker.break(state);
+class LineBreaker {
+private:
+  delta active_width, cur_active_width, background, break_width;
+  RenderNode *head, *tail;
+
+  active_node *
+
+  int32_t minimal_demerits[MAX_FITNESS];
+  int32_t minimum_demerits;
+  int32_t threshold;
+
+public:
+  void break_line(UniquePtr<State> &state) {
+    RenderState &render = state->render();
+    assert(render.mode() == HMODE && "Attempted to break paragraph in wrong mode.");
+    head = render.head();
+    tail = render.tail();
+    render.pop();
+    render.set_mode(VMODE);
+    if (!head)
+      return;
+    assert(tail && "Found NULL tail; tail should never be NULL when head is non-null.");
+
+    /*if (tail->type == GLUE_NODE) {
+      tail->type = PENALTY_NODE;
+      tail->penalty = PENALTY_INF;
+    } else {
+      tail->link = RenderNode::new_penalty(PENALTY_INF);
+      tail = tail->link;
+      tail->link = NULL;
+    }*/
+
+    RenderNode *p = head;
+    RenderNode *prev_p = NULL;
+    while (p) {
+      switch (p->type) {
+        case GLUE_NODE: {
+          if (p->glue.shrink_order != GLUE_NORMAL)
+            throw new GenericDiag("Encountered infinite shrinkage in HMODE.",
+                                  DIAG_RENDER_ERR, BLAME_HERE);
+          if (prev_p && prev_p->type != GLUE_NODE) {
+            RenderNode *break_rule
+              = RenderNode::new_rule(scaled(1<<16), scaled(10<<16));
+            break_rule->link = p;
+            prev_p->link = break_rule;
+          }
+          active_width[0] += p->glue.width;
+          active_width[1+p->glue.stretch_order] += p->glue.stretch;
+          active_width[5] += p->glue.shrink;
+          break;
+        }
+        case RULE_NODE:
+        case HBOX_NODE:
+        case VBOX_NODE:
+        case CHAR_NODE:
+        case LIG_NODE:
+        case KERN_NODE: {
+          active_width[0] += p->width(state);
+          break;
+        }
+        default:
+          throw new GenericDiag("Unknown node type encountered in line break"
+                                "ing algorithm.", DIAG_RENDER_ERR, BLAME_HERE);
+      }
+      prev_p = p;
+      p = prev_p->link;
+    }
+    render.push();
+    render.set_mode(HMODE);
+    render.set_head(head);
+    render.set_tail(tail);
+    simple_line_break(state);
+  }
+public:
+  LineBreaker(UniquePtr<State> &state) {
+    active_width = cur_active_width = background = break_width
+      = delta(scaled(0));
+
+    sp left_skip = state->eqtb()[LEFT_SKIP_CODE].scaled;
+    sp right_skip = state->eqtb()[RIGHT_SKIP_CODE].scaled;
+    //sp hsize = state->eqtb()[HSIZE_CODE].scaled;
+    background[DELTA_WIDTH] = left_skip + right_skip;
+
+    minimum_demerits = PENALTY_AWFUL;
+    for (unsigned i = 0; i < MAX_FITNESS; i++) {
+      minimal_demerits[i] = PENALTY_AWFUL;
+    }
+  }
+  
+};
+
+}
+
+using namespace tex;
+
+void tex::line_break(UniquePtr<State> &state) {
+  LineBreaker breaker(state);
+  breaker.break_line(state);
 }

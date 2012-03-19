@@ -97,6 +97,8 @@ extern void tex::simple_line_break(UniquePtr<State> &state) {
           newline_width += cur_node->width(state);
         }
         break;
+        case PENALTY_NODE:
+        break;
       }
       default : {
         throw new GenericDiag("Found bad type of render node in simple line "

@@ -9,6 +9,4 @@ extern void line_break(UniquePtr<State> &state);
 
 }
 
-}
-
 #endif  // __INCLUDE_RENDER_LINEBREAK_H__
