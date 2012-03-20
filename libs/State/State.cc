@@ -62,6 +62,7 @@ State::State(void) {
   the_eqtb[BASELINE_SKIP_CODE].scaled = scaled(12 << 16);
   the_eqtb[SPLIT_TOP_SKIP_CODE].scaled = scaled(12 << 16);
   the_eqtb[SPLIT_MAX_DEPTH_CODE].scaled = scaled(4 << 16);
+  the_eqtb[ADJ_DEMERITS_CODE].i64 = 10000;
 
   // initialize box registers.
   for (unsigned i = 0; i < 256; i++) {
