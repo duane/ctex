@@ -198,14 +198,6 @@ private:
   sp vec[N];
 public:
 
-  scaled_vector(void) {
-    set_all(scaled(0));
-  }
-
-  scaled_vector(sp val) {
-    set_all(val);
-  }
-
   void set_all(sp rhs) {
     for (unsigned i = 0; i < N; i++) {
       vec[i] = rhs;
