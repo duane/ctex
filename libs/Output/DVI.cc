@@ -185,6 +185,9 @@ void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
       write_rule(state, node);
       break;
     }
+    case PENALTY_NODE: {
+      break;
+    }
     default:
       throw new GenericDiag("Unable to render node type!",
                             DIAG_RENDER_ERR, BLAME_HERE);

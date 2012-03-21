@@ -66,6 +66,14 @@ public:
     i64 += other.i64;
   }
 
+  void operator-=(const int32_t other) {
+    i64 -= other;
+  }
+
+  void operator-=(const sp other) {
+    i64 -= other.i64;
+  }
+
   bool operator<(const int32_t other) const {
     return i64 < other;
   }
