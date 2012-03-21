@@ -76,6 +76,9 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
         hbox.width += p->width(state);
         break;
       }
+      case PENALTY_NODE: {
+        break;
+      }
       default:
         assert(false && "Attempted to pack unknown RenderNode type.");
     }
@@ -183,6 +186,9 @@ RenderNode *tex::vpackage(UniquePtr<State> &state, RenderNode *vlist,
         nat_height += glue.width;
         total_stretch[glue.stretch_order] += glue.stretch;
         total_shrink[glue.shrink_order] += glue.shrink;
+        break;
+      }
+      case PENALTY_NODE: {
         break;
       }
       default: {

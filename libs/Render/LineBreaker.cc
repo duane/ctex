@@ -44,7 +44,7 @@ struct passive_node {
 
 struct active_node {
   active_type type;
-  active_node *link;
+  active_node *link, *prev;
   union {
     struct {
       passive_node *passive;
@@ -52,8 +52,31 @@ struct active_node {
       int32_t demerits;
       int32_t line_number;
     };
-    sp delta[6];
+    delta d;
   };
+
+  void unlink(void) {
+    if (prev)
+      prev->link = link;
+    if (link)
+      link->prev = prev;
+  }
+
+  void insert_before(active_node *node) {
+    node->prev = prev;
+    node->link = this;
+    if (prev)
+      prev->link = node;
+    prev = node;
+  }
+
+  void insert_after(active_node *node) {
+    node->link = link;
+    node->prev = this;
+    if (link)
+      link->prev = node;
+    link = node;
+  }
 };
 
 enum {
@@ -68,17 +91,22 @@ enum {
 class LineBreaker {
 private:
   delta active_width, cur_active_width, background, break_width;
-  RenderNode *head, *tail, *cur_p;
+  RenderNode *head, *tail, *cur_p, *prev_p;
 
   active_node *active, *active_tail;
   passive_node *passive;
 
   int32_t threshold;
+  int32_t line_penalty;
   int32_t old_line, easy_line;
   int32_t minimum_demerits;
   int32_t minimal_demerits[MAX_FITNESS];
   passive_node *best_place[MAX_FITNESS];
   int32_t best_place_line[MAX_FITNESS];
+
+  fitness_type fit_class;
+
+  sp line_width;
 
   bool final_pass;
 
@@ -104,17 +132,18 @@ public:
     }
 
     // insert an active node at the beginning of the paragraph.
-    act_head = new active_node;
-    act_head->type = ACTIVE;
-    act_head->link = NULL;
-    act_head->passive = NULL;
-    act_head->fitness = DECENT_FIT;
-    act_head->demerits = 0;
+    active = new active_node;
+    active->type = ACTIVE;
+    active->link = NULL;
+    active->prev = NULL;
+    active->passive = NULL;
+    active->fitness = DECENT_FIT;
+    active->demerits = 0;
     active_width = background;
 
 
-    RenderNode *cur_p = head;
-    RenderNode *prev_p = NULL;
+    cur_p = head;
+    prev_p = NULL;
     while (cur_p) {
       switch (cur_p->type) {
         case GLUE_NODE: {
@@ -122,10 +151,7 @@ public:
             throw new GenericDiag("Encountered infinite shrinkage in HMODE.",
                                   DIAG_RENDER_ERR, BLAME_HERE);
           if (prev_p && prev_p->type != GLUE_NODE) {
-            RenderNode *break_rule
-              = RenderNode::new_rule(scaled(1<<16), scaled(10<<16));
-            break_rule->link = cur_p;
-            prev_p->link = break_rule;
+            try_break(state, 0);
           }
           active_width[0] += cur_p->glue.width;
           active_width[1+cur_p->glue.stretch_order] += cur_p->glue.stretch;
@@ -141,6 +167,10 @@ public:
           active_width[0] += cur_p->width(state);
           break;
         }
+        case PENALTY_NODE: {
+          try_break(state, cur_p->penalty);
+          break;
+        }
         default:
           throw new GenericDiag("Unknown node type encountered in line break"
                                 "ing algorithm.", DIAG_RENDER_ERR, BLAME_HERE);
@@ -148,6 +178,23 @@ public:
       prev_p = cur_p;
       cur_p = prev_p->link;
     }
+
+    while (passive) {
+      RenderNode *break_p = passive->break_point;
+      RenderNode *next = new RenderNode;
+      memcpy(next, break_p, sizeof(RenderNode));
+      break_p->type = RULE_NODE;
+      break_p->rule = (rule_node){scaled(1<<16), scaled(10<<16)};
+      break_p->link = next;
+      passive_node *prev = passive->link;
+      delete passive;
+      passive = prev;
+    }
+    render.push();
+    render.set_mode(HMODE);
+    render.set_head(head);
+    render.set_tail(tail);
+    simple_line_break(state);
   }
 
   void try_break(UniquePtr<State> &state, int32_t penalty) {
@@ -158,35 +205,25 @@ public:
       penalty = PENALTY_BREAK;
 
     cur_active_width = active_width;
-    active_node *prev_prev_r, *prev_r, *r;
-    prev_prev_r = prev_r = r = NULL;
+    active_node *r = active;
 
     int32_t old_line = 0;
 
     sp line_width = scaled(0);
-
+    
     while (true) {
-      if (!prev_r)
-        r = active;
-      else
-        r = prev_r->link;
-
       // TeX@832
       if (r && r->type == DELTA) {
-        for (unsigned i = 0; i < 6; i++) {
-          cur_active_width[i] += delta[i];
-          prev_prev_r = prev_r;
-          prev_r = r;
-          continue;
-        }
+        cur_active_width += r->d;
+        r = r->link;
+        continue;
       }
       // End TeX@832
 
       // TeX@835
       int32_t line = r->line_number;
       if (line > old_line) {
-        if (minimum_demerits < PENALTY_AWFUL
-           && !(old_line == easy_line && r)) {
+        if (minimum_demerits < PENALTY_AWFUL && !r) {
           // TeX@836
           if (no_break_yet) {
             // TeX@837
@@ -195,32 +232,24 @@ public:
             RenderNode *s = cur_p;
             while (s && s->type == GLUE_NODE) {
               break_width[0] -= s->glue.width;
-              break_width[s->stretch_order + 1] -= s->glue.stretch;
+              break_width[s->glue.stretch_order + 1] -= s->glue.stretch;
               break_width[5] -= s->glue.shrink;
               s = s->link;
             }
             // end TeX@837
           }
           // TeX@843
-          if (prev_r && prev_r->type == DELTA) {
-            for (unsigned i = 0; i < 6; i++) {
-              prev_r->delta[i] -= (cur_active_width[i] + break_width[i]);
-            }
-          } else if (prev_r == active) {
+          if (r->prev && r->prev->type == DELTA)
+            r->prev->d -= (cur_active_width + break_width);
+          else if (r->prev->type == ACTIVE)
             active_width = break_width;
-          } else {
-            active_node *delta = new active_node;
-            for (unsigned i = 0; i < 6; i++) {
-              delta->delta[i] = (break_width[i] - cur_active_width[i]);
-            }
-            delta->type = DELTA;
-            delta->link = r;
-            if (prev_r)
-              prev_r->link = delta;
-            else
-              active = delta;
-            prev_prev_r = prev_r;
-            prev_r = delta;
+          else {
+            active_node *new_delta = new active_node;
+            new_delta->d = break_width - cur_active_width;
+            new_delta->type = DELTA;
+            if (!r->prev)
+              active = new_delta;
+            r->insert_before(new_delta);
           }
           // end TeX@843;
 
@@ -233,23 +262,21 @@ public:
             if (minimal_demerits[fit] < minimum_demerits) {
               // TeX@845
               passive_node *new_passive = new passive_node;
+              cur_p->print(state, 1);
               new_passive->break_point = cur_p;
               new_passive->parent = best_place[fit];
               new_passive->link = passive;
               passive = new_passive;
 
               active_node *new_active = new active_node;
-              new_active->type = active;
+              new_active->type = ACTIVE;
               new_active->passive = new_passive;
               new_active->line_number = best_place_line[fit] + 1;
               new_active->fitness = (fitness_type)fit;
               new_active->demerits = minimal_demerits[fit];
-              if (prev_r)
-                prev_r->link = new_active;
-              else
+              if (!r->prev)
                 active = new_active;
-              prev_r = new_active;
-              new_active->link = r;
+              r->insert_before(new_active);
               // end TeX@845
               minimal_demerits[fit] = PENALTY_AWFUL;
             }
@@ -257,12 +284,12 @@ public:
           minimum_demerits = PENALTY_AWFUL;
           // end TeX@836;
         }
+        if (r->link == NULL)
+          return;
       }
-      if (r->link == NULL)
-        return;
       // TeX@850
-      // Parshape/hanging indentation ignored for now.
-      line_width = state->eqtb()[HSIZE_CODE].scaled;
+      // Parshape/hanging indentation ignored for now. line_width is set in
+      // constructor.
       // End TeX@850
       // End TeX@835
 
@@ -277,7 +304,7 @@ public:
         if (cur_active_width[DELTA_FIL]
             || cur_active_width[DELTA_FILL]
             || cur_active_width[DELTA_FILLL]) {
-          badn = 0;
+          bad = 0;
           fit_class = DECENT_FIT;
         } else if (shortfall > 7230584) {
           if (cur_active_width[DELTA_NORMAL] < 1663497) {
@@ -308,20 +335,22 @@ public:
           fit_class = DECENT_FIT;
         // end TeX@853
       }
-      if (badness > PENALTY_INF || penalty == PENALTY_BREAK) {
+      bool deactivate = false;
+      if (bad > PENALTY_INF || penalty == PENALTY_BREAK) {
         // TeX@854
-        if (final_pass && minimum_demerits == PENALTY_AWFUL && !r->link)e
+        if (final_pass && minimum_demerits == PENALTY_AWFUL && !r->link)
           artificial_demerits = true;
         else
           deactivate = true;
         // end TeX@854
       } else {
-        prev_r = r;
-        if (badness > threshold)
+        if (bad > threshold) {
+          r = r->link;
           continue;
-        node_r_stays_active = true;
+        }
       }
       // TeX@855
+      int32_t demerits;
       if (artificial_demerits)
         demerits = 0;
       else {
@@ -338,12 +367,12 @@ public:
             demerits -= penalty * penalty;
         }
         if (abs(fit_class - r->fitness) > 1)
-          d += state->eqtb()[ADJ_DEMERITS_CODE].i64;
+          demerits += state->eqtb()[ADJ_DEMERITS_CODE].i64;
         // End TeX@859
         demerits += r->demerits;
         if (demerits <= minimal_demerits[fit_class]) {
           minimal_demerits[fit_class] = demerits;
-          best_place[fit_class] = r->active;
+          best_place[fit_class] = r->passive;
           best_place_line[fit_class] = line;
           if (demerits < minimum_demerits)
             minimum_demerits = demerits;
@@ -352,40 +381,36 @@ public:
       // end TeX@855
       if (deactivate) {
         // TeX@860
-        if (prev_r == NULL) {
+        if (r->prev == NULL) {
           // TeX@861
           active = r->link;
-          delete r;
           r = active;
+          active->prev = NULL;
           if (r->type == DELTA) {
-            for (unsigned i = 0; i < 6; i++) {
-              cur_active_width = r->delta[i];
-            }
+            cur_active_width = r->d;
             active_width += cur_active_width;
             active = r->link;
             delete r;
             r = active;
+            r->prev = NULL;
+            r->link->prev = r;
           }
           // End TeX@861
         } else {
-          prev_r->link = r->link;
+
+          active_node *prev_r = r->prev;
+          r->unlink();
           delete r;
           r = prev_r->link;
           if (prev_r->type == DELTA) {
             if (r == NULL) {
-              for (unsigned i = 0; i < 6; i++) {
-                cur_active_width[i] -= prev_r->delta[i];
-              }
-              if (prev_prev_r)
-                prev_prev_r->link = prev_r->link;
+              cur_active_width -= prev_r->d;
+              prev_r->unlink();
               delete prev_r;
-              prev_r = prev_prev_r;
             } else if (r->type == DELTA) {
-              for (unsigned i = 0; i < 6; i++) {
-                cur_active_width[i] += r->delta[i];
-                prev_r->delta[i] += r->delta[i];
-              }
-              prev_r->link = r->link;
+              cur_active_width += r->d;
+              prev_r->d += r->d;
+              r->unlink();
               delete r;
             }
           }
@@ -393,18 +418,23 @@ public:
         // end TeX@860
       }
 
-      // EnD TeX@851
+      // End TeX@851
+      r = r->link;
     }
+
   }
 
 public:
   LineBreaker(UniquePtr<State> &state) {
-    active_width = cur_active_width = background = break_width
-      = delta(scaled(0));
+    active_width.set_all(scaled(0));
+    cur_active_width.set_all(scaled(0));
+    background.set_all(scaled(0));
+    break_width.set_all(scaled(0));
+
 
     sp left_skip = state->eqtb()[LEFT_SKIP_CODE].scaled;
     sp right_skip = state->eqtb()[RIGHT_SKIP_CODE].scaled;
-    //sp hsize = state->eqtb()[HSIZE_CODE].scaled;
+    line_width = state->eqtb()[HSIZE_CODE].scaled;
     background[DELTA_WIDTH] = left_skip + right_skip;
 
     // TeX@834
@@ -413,6 +443,14 @@ public:
       minimal_demerits[i] = PENALTY_AWFUL;
     }
     // end TeX@834
+
+    final_pass = false;
+    threshold = state->eqtb()[PRETOLERANCE_CODE].i64;
+    line_penalty = state->eqtb()[LINE_PENALTY_CODE].i64;
+
+    active = NULL;
+    passive = NULL;
+    head = tail = NULL;
   }
 };
 
