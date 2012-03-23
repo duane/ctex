@@ -215,32 +215,32 @@ RenderNode *tex::vpackage(UniquePtr<State> &state, RenderNode *vlist,
     return node.take();
   }
   if (excess > 0) {
-    if (total_stretch[GLUE_FILLL])
+    if (total_stretch[GLUE_FILLL] != 0)
       box.order = GLUE_FILLL;
-    else if (total_stretch[GLUE_FILL])
+    else if (total_stretch[GLUE_FILL] != 0)
       box.order = GLUE_FILL;
-    else if (total_stretch[GLUE_FIL])
+    else if (total_stretch[GLUE_FIL] != 0)
       box.order = GLUE_FIL;
     else
       box.order = GLUE_NORMAL;
     box.sign = SIGN_STRETCH;
-    if (total_stretch[box.order])
+    if (total_stretch[box.order] != 0)
       box.g_ratio = (float)excess.i64/total_stretch[box.order].i64;
     else {
       box.sign = SIGN_NORMAL;
       box.g_ratio = 0.0;
     }
   } else {
-    if (total_shrink[GLUE_FILLL])
+    if (total_shrink[GLUE_FILLL] != 0)
       box.order = GLUE_FILLL;
-    else if (total_shrink[GLUE_FILL])
+    else if (total_shrink[GLUE_FILL] != 0)
       box.order = GLUE_FILL;
-    else if (total_shrink[GLUE_FIL])
+    else if (total_shrink[GLUE_FIL] != 0)
       box.order = GLUE_FIL;
     else
       box.order = GLUE_NORMAL;
     box.sign = SIGN_SHRINK;
-    if (total_shrink[box.order])
+    if (total_shrink[box.order] != 0)
       box.g_ratio = (float)excess.i64/total_stretch[box.order].i64;
     else {
       box.sign = SIGN_NORMAL;

@@ -105,7 +105,7 @@ RenderNode *tex::vert_break(UniquePtr<State> &state, RenderNode *vlist,
         int32_t bad;
         if (penalty < PENALTY_INF) {
           if (cur_height < height) {
-            if (active_height[2] || active_height[3] || active_height[4])
+            if (active_height[2] != 0 || active_height[3] != 0 || active_height[4] != 0)
               bad = 0;
             else
               bad = badness(height - cur_height, active_height[1]);

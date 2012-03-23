@@ -183,10 +183,6 @@ public:
     res += right_str;
     return res;
   }
-
-  operator bool(void) const {
-    return i64 != 0;
-  }
 };
 
 static inline sp scaled(int32_t v) {
