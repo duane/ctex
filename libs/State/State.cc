@@ -77,6 +77,7 @@ State::State(void) {
   // initialize primitives.
   primitive("par", CC_PAR_END, (word){0});
   primitive("end", CC_STOP, (word){0});
+  primitive("eject", EJECT_CODE, (word){0});
 }
 
 void State::init(UniquePtr<State> &result) {

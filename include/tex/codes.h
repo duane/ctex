@@ -46,7 +46,7 @@ enum {
   CC_DELIM_NUM = 15,
   
   CC_SET_FONT,
-  
+  EJECT_CODE,
 };
 
 }

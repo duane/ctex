@@ -62,7 +62,8 @@ void TokenRender::render_input(UniquePtr<State> &state) {
     uint32_t mode_cmd = (render.mode() << 16 | (token.cmd & 0xFFFF));
     switch(mode_cmd) {
       case M(VMODE, CC_LETTER):
-      case M(VMODE, CC_OTHER_CHAR): {
+      case M(VMODE, CC_OTHER_CHAR):
+      case M(VMODE, CC_SPACER): {
         // enter horizontal mode.
         begin_paragraph(state);
         break; // read the character again, this time in HMODE
@@ -164,6 +165,14 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         state->eqtb().enter_grouping();
         break;
       }
+      case M(HMODE, EJECT_CODE):
+        end_paragraph(state);
+      case M(VMODE, EJECT_CODE): {
+        input->consume_token(state, token);
+        render.append(RenderNode::new_penalty(PENALTY_BREAK));
+        state->builder().build_page(state);
+        break;
+      }
       case M(VMODE, CC_RBRACE):
       case M(HMODE, CC_RBRACE):
       case M(MMODE, CC_RBRACE):
@@ -179,6 +188,7 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         break;
       }
       default: {
+        std::cout << token.cmd;
         throw new BlameSourceDiag("Command code not implemented yet.",
           DIAG_RENDER_ERR, BLAME_HERE,
           BlameSource("file", token.line, token.line, token.col, token.col));
