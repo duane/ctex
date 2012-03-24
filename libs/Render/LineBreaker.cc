@@ -131,18 +131,6 @@ private:
   bool final_pass;
 
 public:
-  void print_active_nodes(UniquePtr<State> &state) {
-    active_node *act = active.head;
-    std::cout << "Active nodes:\n";
-    while (act) {
-      if (act->type == DELTA)
-        std::cout << "\tDelta: " << act->d[0].string() << "\n";
-      else
-        std:: cout << "\tActive: " << act->demerits << "\n";
-      act = act->link;
-    }
-  }
-
   void add_nodes_if_necessary(UniquePtr<State> &state, active_node *&r) {
     if (minimum_demerits < PENALTY_AWFUL) {
       // TeX@836
@@ -193,7 +181,6 @@ public:
         minimum_demerits += abs_adj_demerits;
       for (unsigned fit = 0; fit < MAX_FITNESS; fit++) {
         if (minimal_demerits[fit] < minimum_demerits) {
-          std::cout << "Creating new node.\n";
           // TeX@845
           passive_node *new_passive = new passive_node;
           new_passive->break_point = cur_p;
@@ -225,7 +212,6 @@ public:
   }
 
   void deactivate_node(UniquePtr<State> &state, active_node *&r) {
-    std::cout << "Deactivating.\n";
     // TeX@860
     if (r->prev == NULL) {
       // TeX@861
@@ -277,12 +263,17 @@ public:
 
     if (tail->type == GLUE_NODE) {
       tail->type = PENALTY_NODE;
-      tail->penalty = PENALTY_BREAK;
+      tail->penalty = PENALTY_INF;
     } else {
-      tail->link = RenderNode::new_penalty(PENALTY_BREAK);
+      tail->link = RenderNode::new_penalty(PENALTY_INF);
       tail = tail->link;
       tail->link = NULL;
     }
+    glue_node par_fill_skip = (glue_node){scaled(0), scaled(1), scaled(0),
+                                          GLUE_FIL, GLUE_NORMAL};
+    tail->link = RenderNode::new_glue(par_fill_skip);
+    tail = tail->link;
+
 
     do {
       // insert an active node at the beginning of the paragraph.
@@ -322,10 +313,7 @@ public:
             break;
           }
           case PENALTY_NODE: {
-            print_active_nodes(state);
-            std::cout << "Penalty node.\n";
             try_break(state, cur_p->penalty);
-            print_active_nodes(state);
             break;
           }
           default:
@@ -335,6 +323,7 @@ public:
         prev_p = cur_p;
         cur_p = prev_p->link;
       }
+      try_break(state, PENALTY_BREAK);
       if (!active.head) {
         assert(!final_pass);
         final_pass = true;
@@ -347,9 +336,11 @@ public:
       active_node *r = active.head;
       int32_t fewest_demerits = PENALTY_AWFUL;
       while (r) {
-        if (r->type == ACTIVE && r->demerits <= fewest_demerits) {
-          best_bet = r;
-          fewest_demerits = r->demerits;
+        if (r->type == ACTIVE) {
+          if (r->demerits <= fewest_demerits) {
+            best_bet = r;
+            fewest_demerits = r->demerits;
+          }
         }
         r = r->link;
       }
@@ -371,15 +362,6 @@ public:
     int32_t old_line = -1;
  
     while (true) {
-      if (penalty == PENALTY_BREAK) {
-        std::cout << "\t";
-        if (!r)
-          std::cout << "NULL\n";
-        else if (r->type == ACTIVE)
-          std::cout << "\tACTIVE\n";
-        else
-          std::cout << "\tDELTA\n";
-      }
       // TeX@832
       if (r && r->type == DELTA) {
         cur_active_width += r->d;
@@ -411,10 +393,6 @@ public:
 
       bool artificial_demerits = false;
       sp shortfall = line_width - cur_active_width[0];
-      std::cout << "Line width: " << line_width.string()
-                << ", cur_active_width: " << cur_active_width[0].string()
-                << ", shortfall: " << shortfall.string()
-                << std::endl;
       int32_t bad = 0;
       if (shortfall > 0) {
         // TeX@852
@@ -507,6 +485,7 @@ public:
         if (demerits < minimum_demerits)
           minimum_demerits = demerits;
       }
+
       // end TeX@855
       if (deactivate) {
         deactivate_node(state, r);
@@ -531,7 +510,7 @@ public:
     }
     // End TeX@878
 
-    while (cur_passive) {
+    while (cur_passive && head) {
       // TeX@880
       // TeX@881
       RenderNode *break_point = cur_passive->break_point;
@@ -546,6 +525,7 @@ public:
         RenderNode *glue = RenderNode::new_glue(rs_glue);
         break_point->link = glue;
         glue->link = NULL;
+        break_point = break_point->link;
       }
       // End TeX@881
 
@@ -555,7 +535,6 @@ public:
       head = break_point->link;
       break_point->link = NULL;
       if (left_skip != 0) {
-
         glue_node ls_glue = skip_glue(left_skip);
         RenderNode *glue = RenderNode::new_glue(ls_glue);
         glue->link = line_list;
@@ -564,8 +543,15 @@ public:
       // End TeX@887
 
       // TeX@889
-      std::cout << "appending line." << std::endl;
-      state->render().append(hpack(state, line_list, line_width, EXACTLY));
+      RenderNode *line_box = hpack(state, line_list, line_width, EXACTLY);
+      sp baseline_skip = state->eqtb()[BASELINE_SKIP_CODE].scaled;
+      if (baseline_skip > line_box->box.height)
+        baseline_skip -= line_box->box.height;
+      else
+        baseline_skip = 0;
+      glue_node baseline_glue = skip_glue(baseline_skip);
+      state->render().append(line_box);
+      state->render().append(RenderNode::new_glue(baseline_glue));
       // End TeX@889
 
       // End TeX@880

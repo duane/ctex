@@ -25,8 +25,7 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
   RenderNode *result_node = RenderNode::empty_hbox();
   box_node &hbox = result_node->box;
   hbox.list = hlist;
-  RenderNode *p;
-  p = hlist;
+  RenderNode *p = hlist, *prev_p = NULL;
   sp total_stretch[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
   sp total_shrink[4] = {scaled(0), scaled(0), scaled(0), scaled(0)};
   while (p) {
@@ -82,7 +81,8 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
       default:
         assert(false && "Attempted to pack unknown RenderNode type.");
     }
-    p = p->link;
+    prev_p = p;
+    p = prev_p->link;
   }
 
   // hbox.width is now the "natural" width of the box
@@ -91,14 +91,14 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
     target_width = width;
   else
     target_width = hbox.width + width;
-  sp delta_width = target_width - hbox.width;
-  if (delta_width == 0) {
+  sp shortfall = target_width - hbox.width;
+  if (shortfall == 0) {
     hbox.order = GLUE_NORMAL;
     hbox.sign = SIGN_NORMAL;
     hbox.g_ratio = 0.0;
     return result_node;
   }
-  if (delta_width < 0) { // shrink
+  if (shortfall < 0) { // shrink
     glue_order ord;
     if (total_shrink[GLUE_FILLL] != 0)
       ord = GLUE_FILLL;
@@ -117,7 +117,14 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
     } else {
       hbox.order = ord;
       hbox.sign = SIGN_SHRINK;
-      hbox.g_ratio = (float)(-delta_width.i64)/total_shrink[ord].i64;
+      hbox.g_ratio = (float)(-shortfall.i64)/total_shrink[ord].i64;
+      if (hbox.order == GLUE_NORMAL && hbox.g_ratio > 1.0) {
+        hbox.g_ratio = 1.0;
+        RenderNode *underfull_rule
+          = RenderNode::new_rule(scaled(5<<16), hbox.height);
+        prev_p->link = underfull_rule;
+        hbox.width += underfull_rule->rule.width;
+      }
       return result_node;
     }
   } else { // stretch
@@ -139,7 +146,14 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
     } else {
       hbox.order = ord;
       hbox.sign = SIGN_STRETCH;
-      hbox.g_ratio = (float)delta_width.i64/total_shrink[ord].i64;
+      hbox.g_ratio = (float)shortfall.i64/total_stretch[ord].i64;
+      if (hbox.order == GLUE_NORMAL && hbox.g_ratio > 1.0) {
+        hbox.g_ratio = 1.0;
+        RenderNode *underfull_rule
+          = RenderNode::new_rule(scaled(5<<16), hbox.height);
+        prev_p->link = underfull_rule;
+        hbox.width += underfull_rule->rule.width;
+      }
       return result_node;
     }
   }
@@ -150,7 +164,7 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
 RenderNode *tex::vpackage(UniquePtr<State> &state, RenderNode *vlist,
                           sp height, sp given_depth, pack_type type) {
   sp nat_height = scaled(0);
-  UniquePtr<RenderNode> node; // RAII
+  UniquePtr<RenderNode> node;
   node.reset(RenderNode::empty_vbox());
 
   box_node &box = node->box;
