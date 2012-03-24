@@ -84,7 +84,7 @@ void DVI::write_hbox(UniquePtr<State> &state, RenderNode *node) {
   mode = HORIZ;
   RenderNode *hlist = node->box.list;
   while (hlist) {
-   write_node(state, hlist);
+   write_node(state, hlist, node->box.g_ratio, node->box.order, node->box.sign);
    hlist = hlist->link;
   }
   mode = VERT;
@@ -112,7 +112,7 @@ void DVI::write_vbox(UniquePtr<State> &state, RenderNode *node) {
   mode = VERT;
   RenderNode *vlist = node->box.list;
   while (vlist) {
-    write_node(state, vlist);
+    write_node(state, vlist, node->box.g_ratio, node->box.order, node->box.sign);
     vlist = vlist->link;
   }
   mode = HORIZ;
@@ -132,11 +132,24 @@ void DVI::write_vbox(UniquePtr<State> &state, RenderNode *node) {
   }
 }
 
-void DVI::write_glue(UniquePtr<State> &state, RenderNode *node) {
+void DVI::write_glue(UniquePtr<State> &state, RenderNode *node,
+                     glue_ratio ratio, glue_order ord, glue_sign sign) {
+  int64_t extra = 0;
+  if (ratio != 0.0 && sign != SIGN_NORMAL) {
+    if (node->glue.stretch_order == ord
+        && sign == SIGN_STRETCH
+        && node->glue.stretch != 0) {
+      extra = node->glue.stretch.i64 * ratio;
+    } else if (node->glue.shrink_order == ord
+               && sign == SIGN_SHRINK
+               && node->glue.shrink != 0) {
+      extra = -node->glue.shrink.i64 * ratio;
+    }
+  }
   if (mode == VERT)
-    writer->down(node->width(state).i64);
+    writer->down(node->width(state).i64 + extra);
   else
-    writer->right(node->width(state).i64);
+    writer->right(node->width(state).i64 + extra);
 }
 
 void DVI::write_lig(UniquePtr<State> &state, RenderNode *node) {
@@ -152,10 +165,11 @@ void DVI::write_kern(UniquePtr<State> &state, RenderNode *node) {
 
 void DVI::write_rule(UniquePtr<State> &state, RenderNode *node) {
   assert(node->type == RULE_NODE && "Attempted to render wrong node type.");
-  writer->put_rule(node->rule.width, node->rule.height);
+  writer->put_rule(node->rule.height.i64, node->rule.width.i64);
 }
 
-void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
+void DVI::write_node(UniquePtr<State> &state, RenderNode *node,
+                     glue_ratio ratio, glue_order ord, glue_sign sign) {
   switch (node->type){
     case CHAR_NODE: {
       write_char(state, node);
@@ -170,7 +184,7 @@ void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
       break;
     }
     case GLUE_NODE: {
-      write_glue(state, node);
+      write_glue(state, node, ratio, ord, sign);
       break;
     }
     case LIG_NODE: {
@@ -183,6 +197,9 @@ void DVI::write_node(UniquePtr<State> &state, RenderNode *node) {
     }
     case RULE_NODE: {
       write_rule(state, node);
+      break;
+    }
+    case PENALTY_NODE: {
       break;
     }
     default:
@@ -202,7 +219,7 @@ void DVI::render(UniquePtr<State> &state) {
     writer->bop(c);
     RenderNode *node = page->head;
     while (node) {
-      write_node(state, node);
+      write_node(state, node, 0.0, GLUE_NORMAL, SIGN_NORMAL);
       node = node->link;
     }
     writer->eop();

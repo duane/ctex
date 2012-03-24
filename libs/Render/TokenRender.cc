@@ -19,7 +19,7 @@
 #include <cstdio>
 #include <iostream>
 
-#include <Render/SimpleBreaker.h>
+#include <Render/LineBreaker.h>
 
 using namespace tex;
 
@@ -33,7 +33,7 @@ void TokenRender::init_from_file(const char *path, const Codec *codec, UniquePtr
 #define M(mode, cmd) ((mode) << 16 | (cmd))
 
 static inline void end_paragraph(UniquePtr<State> &state) {
-  simple_line_break(state);
+  line_break(state);
   state->render().set_mode(VMODE);
 }
 

@@ -46,10 +46,12 @@ private:
   void write_char(UniquePtr<State> &state, RenderNode *node);
   void write_hbox(UniquePtr<State> &state, RenderNode *node);
   void write_vbox(UniquePtr<State> &state, RenderNode *node);
-  void write_glue(UniquePtr<State> &state, RenderNode *node);
+  void write_glue(UniquePtr<State> &state, RenderNode *node,
+                  glue_ratio ratio, glue_order ord, glue_sign sign);
   void write_lig(UniquePtr<State> &state, RenderNode *node);
   void write_kern(UniquePtr<State> &state, RenderNode *node);
-  void write_node(UniquePtr<State> &state, RenderNode *node);
+  void write_node(UniquePtr<State> &state, RenderNode *node,
+                  glue_ratio ratio, glue_order ord, glue_sign sign);
   void write_rule(UniquePtr<State> &state, RenderNode *node);
 
   uint32_t define_font(UniquePtr<State> &state, uint32_t tex_font);

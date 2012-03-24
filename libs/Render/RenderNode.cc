@@ -117,7 +117,7 @@ void RenderNode::print(UniquePtr<State> &state, unsigned indent) {
     }
     case GLUE_NODE: {
       std::cout << indentation << "Glue: " << glue.width.string();
-      if (glue.stretch) {
+      if (glue.stretch != 0) {
         switch(glue.stretch_order) {
           case GLUE_NORMAL:
             std::cout << " plus ";
@@ -134,7 +134,7 @@ void RenderNode::print(UniquePtr<State> &state, unsigned indent) {
         }
       std::cout << glue.stretch.string();
       }
-      if (glue.shrink) {
+      if (glue.shrink != 0) {
         switch(glue.shrink_order) {
           case GLUE_NORMAL:
             std::cout << " minus ";
