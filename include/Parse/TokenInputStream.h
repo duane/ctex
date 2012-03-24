@@ -31,7 +31,8 @@ private:
   TokenInputStream(const TokenInputStream&);
   TokenInputStream &operator=(const TokenInputStream&);
 
-  TokenInputStream() : input_stream(), parser_state(STATE_NEWLINE), peeked(false) {}
+  TokenInputStream() : input_stream(), parser_state(STATE_NEWLINE),
+                     peeked(false) {}
 private:
   UniquePtr<CodecInputStream> input_stream;
 
