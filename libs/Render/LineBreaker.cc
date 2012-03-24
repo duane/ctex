@@ -55,29 +55,6 @@ struct active_node {
     };
     delta d;
   };
-
-  void unlink(void) {
-    if (prev)
-      prev->link = link;
-    if (link)
-      link->prev = prev;
-  }
-
-  void insert_before(active_node *node) {
-    node->prev = prev;
-    node->link = this;
-    if (prev)
-      prev->link = node;
-    prev = node;
-  }
-
-  void insert_after(active_node *node) {
-    node->link = link;
-    node->prev = this;
-    if (link)
-      link->prev = node;
-    link = node;
-  }
 };
 
 class active_list {
@@ -92,8 +69,40 @@ public:
     if (head) {
       tail->link = node;
       node->prev = tail;
+      tail = node;
     } else
       head = tail = node;
+  }
+
+  void unlink(active_node *node) {
+    if (node->prev)
+      node->prev->link = node->link;
+    if (node->link)
+      node->link->prev = node->prev;
+    if (node == head)
+      head = node->link;
+    if (node == tail)
+      tail = node->prev;
+  }
+
+  void insert_before(active_node *this_node, active_node *inserted_node) {
+    inserted_node->prev = this_node->prev;
+    inserted_node->link = this_node;
+    if (this_node->prev)
+      this_node->prev->link = inserted_node;
+    else
+      head = inserted_node;
+    this_node->prev = inserted_node;
+  }
+
+  void insert_after(active_node *this_node, active_node *inserted_node) {
+    inserted_node->link = this_node->link;
+    inserted_node->prev = this_node;
+    if (this_node->link)
+      this_node->link->prev = inserted_node;
+    else
+      tail = inserted_node;
+    this_node->link = inserted_node;
   }
 };
 
@@ -139,10 +148,13 @@ public:
         no_break_yet = false;
         break_width = background;
         RenderNode *s = cur_p;
-        while (s && s->type == GLUE_NODE) {
-          break_width[0] -= s->glue.width;
-          break_width[s->glue.stretch_order + 1] -= s->glue.stretch;
-          break_width[5] -= s->glue.shrink;
+        while (s) {
+          if (s->type == GLUE_NODE) {
+            break_width[0] -= s->glue.width;
+            break_width[s->glue.stretch_order + 1] -= s->glue.stretch;
+            break_width[5] -= s->glue.shrink;
+          } else if (s->type != PENALTY_NODE)
+            break;
           s = s->link;
         }
         // end TeX@837
@@ -165,9 +177,7 @@ public:
           active_node *new_delta = new active_node;
           new_delta->d = break_width - cur_active_width;
           new_delta->type = DELTA;
-          prev_r->insert_after(new_delta);
-          if (active.tail->link)
-            active.tail = active.tail->link;
+          active.insert_after(prev_r, new_delta);
           prev_r = prev_r->link;
         }
       }
@@ -196,10 +206,9 @@ public:
           new_active->demerits = minimal_demerits[fit];
           if (!prev_r) {
             active.append(new_active);
+            prev_r = active.head;
           } else {
-            prev_r->insert_after(new_active);
-            if (!new_active->link)
-              active.tail = new_active;
+            active.insert_after(prev_r, new_active);
             prev_r = prev_r->link;
           }
           // end TeX@845
@@ -207,6 +216,15 @@ public:
         }
       }
       minimum_demerits = PENALTY_AWFUL;
+      // TeX@843
+      if (prev_r->link) {
+        active_node *new_delta = new active_node;
+        new_delta->type = DELTA;
+        new_delta->d = cur_active_width - break_width;
+        active.insert_after(prev_r, new_delta);
+        prev_r = prev_r->link;
+      }
+      // End TeX@843
       // end TeX@836;
     }
   }
@@ -216,13 +234,13 @@ public:
     if (r->prev == NULL) {
       // TeX@861
       active_node *new_head = r->link;
-      r->unlink();
+      active.unlink(r);
       r = new_head;
       if (r && r->type == DELTA) {
         active_width += r->d;
         cur_active_width = active_width;
         new_head = r->link;
-        r->unlink();
+        active.unlink(r);
         r = new_head;
       }
       active.head = r;
@@ -230,18 +248,18 @@ public:
     } else {
 
       active_node *prev_r = r->prev;
-      r->unlink();
+      active.unlink(r);
       delete r;
       r = prev_r->link;
       if (prev_r->type == DELTA) {
         if (!r) {
           cur_active_width -= prev_r->d;
-          prev_r->unlink();
+          active.unlink(prev_r);
           delete prev_r;
         } else if (r->type == DELTA) {
           cur_active_width += r->d;
           prev_r->d += r->d;
-          r->unlink();
+          active.unlink(r);
           delete r;
           r = prev_r;
         }
@@ -282,7 +300,9 @@ public:
       new_node->passive = NULL;
       new_node->fitness = DECENT_FIT;
       new_node->demerits = 0;
-      active.append(new_node);
+      active.head = new_node;
+      active.tail = new_node;
+      new_node->prev = new_node->link = NULL;
       active_width = background;
 
 
