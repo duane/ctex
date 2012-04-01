@@ -85,6 +85,64 @@ int TokenInputStream::read_translated_char(UniquePtr<State> &state, unichar &uc)
   return 0;
 }
 
+void consume_optional_equals(UniquePtr<State> &state) {
+  peeked = false;
+  unichar uc;
+  input_stream->peek_char(uc);
+  while (state->catcode(uc) == CC_SPACER) {
+    input_stream->consume_char(uc);
+    input_stream->peek_char(uc);
+  }
+  if (uc != '=')
+    return;
+  input_stream->consume_char(uc);
+  input_stream->peek_char(uc);
+  while (state->catcode(uc) == CC_SPACER) {
+    input_stream->consume_char(uc);
+    input_stream->peek_char(uc);
+  }
+}
+
+sp consume_decimal(UniquePtr<State> &state) {
+  peeked = false;
+  unichar uc;
+  bool negate = false;
+  int64_t left = 0, right = 0;
+  input_stream->peek_char(uc);
+  while (state->catcode(uc) == CC_SPACER) {
+    input_stream->consume_char(uc);
+    input_stream->peek_char(uc);
+  }
+  if (uc == '-') {
+    negate = true;
+    uc->consume_char(uc);
+    input_stream->peek_char(uc);
+  }
+  if (uc < '0' || uc > '9')
+    throw new GenericDiag("Expected number, found non-number.", DIAG_PARSE_ERR,
+                          BLAME_HERE);
+
+  while (uc >= '0' && uc <= '9') {
+    value *= 10;
+    value += (uc - '0');
+    input_stream->consume_char(uc);
+    input_stream->peek_char(uc);
+  }
+  if (uc != '.')
+    return scaled(left << 16);
+
+  input_stream->consume_char(uc);
+  input_stream->peek_char(uc);
+  if (uc < '0' || uc > '9')
+    throw new GenericDiag("Expected digit, found non-digit.". DIAG_PARSE_ERR,
+                          BLAME_HERE);
+  while (uc >= '0' && uc <= '9') {
+    unsigned digit = uc - '0';
+    right = ((digit << 16) | right) / 10;
+  }
+  return scaled((left << 16) + right);
+}
+
 int TokenInputStream::read_command_sequence(UniquePtr<State> &state, UString &result) {
   MutableUString string;
   unichar uc;
