@@ -119,7 +119,7 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
       hbox.sign = SIGN_SHRINK;
       hbox.g_ratio = (float)(-shortfall.i64)/total_shrink[ord].i64;
       if (hbox.order == GLUE_NORMAL && hbox.g_ratio > 1.0) {
-        hbox.g_ratio = 1.0;
+        hbox.g_ratio = 0.0;
         RenderNode *underfull_rule
           = RenderNode::new_rule(scaled(5<<16), hbox.height);
         prev_p->link = underfull_rule;
@@ -148,7 +148,7 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
       hbox.sign = SIGN_STRETCH;
       hbox.g_ratio = (float)shortfall.i64/total_stretch[ord].i64;
       if (hbox.order == GLUE_NORMAL && hbox.g_ratio > 1.0) {
-        hbox.g_ratio = 1.0;
+        hbox.g_ratio = 0.0;
         RenderNode *underfull_rule
           = RenderNode::new_rule(scaled(5<<16), hbox.height);
         prev_p->link = underfull_rule;

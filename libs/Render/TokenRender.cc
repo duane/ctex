@@ -37,19 +37,18 @@ static inline void end_paragraph(UniquePtr<State> &state) {
   state->render().set_mode(VMODE);
 }
 
-static inline void begin_paragraph(UniquePtr<State> &state) {
+static inline void begin_paragraph(UniquePtr<State> &state, bool indent) {
   RenderState &render = state->render();
-  glue_node glue = skip_glue(state->eqtb()[PARINDENT_CODE].scaled);
-  RenderNode *indent = RenderNode::new_glue(glue);
-  if (render.mode() == HMODE) {
-    render.append(indent);
-  } else {
-    assert(render.mode() == VMODE && "attempted to begin paragraph in "
-                                     "non-VMODE, non-HMODE.");
+  if (render.mode() == VMODE) {
     render.push();
     render.set_mode(HMODE);
-    render.set_head(indent);
-    render.set_tail(indent);
+    render.set_head(NULL);
+    render.set_tail(NULL);
+  }
+  if (indent) {
+    glue_node glue = skip_glue(state->eqtb()[PARINDENT_CODE].scaled);
+    RenderNode *indent_glue = RenderNode::new_glue(glue);
+    render.append(indent_glue);
   }
 }
 
@@ -61,11 +60,14 @@ void TokenRender::render_input(UniquePtr<State> &state) {
     input->peek_token(state, token);
     uint32_t mode_cmd = (render.mode() << 16 | (token.cmd & 0xFFFF));
     switch(mode_cmd) {
-      case M(VMODE, CC_LETTER):
-      case M(VMODE, CC_OTHER_CHAR):
       case M(VMODE, CC_SPACER): {
+        input->consume_token(state, token);
+        break;
+      }
+      case M(VMODE, CC_LETTER):
+      case M(VMODE, CC_OTHER_CHAR): {
         // enter horizontal mode.
-        begin_paragraph(state);
+        begin_paragraph(state, true);
         break; // read the character again, this time in HMODE
       }
       case M(HMODE, CC_LETTER):
@@ -121,8 +123,7 @@ void TokenRender::render_input(UniquePtr<State> &state) {
       }
       case M(HMODE, CC_PAR_END): {
         input->consume_token(state, token);
-        if (render.head())
-          end_paragraph(state);
+        end_paragraph(state);
         state->builder().build_page(state);
         break;
       }
@@ -171,6 +172,46 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         input->consume_token(state, token);
         render.append(RenderNode::new_penalty(PENALTY_BREAK));
         state->builder().build_page(state);
+        break;
+      }
+      case M(VMODE, PAR_BEG_CODE):
+      case M(HMODE, PAR_BEG_CODE): {
+        input->consume_token(state, token);
+        begin_paragraph(state, token.cs->operand.i64 == 0 ? false : true);
+        break;
+      }
+      case M(HMODE, RULE_CODE): {
+        end_paragraph(state);
+      }
+      case M(VMODE, RULE_CODE): {
+        input->consume_token(state, token);
+        RenderNode *rule = RenderNode::new_rule(
+                            state->eqtb()[HSIZE_CODE].scaled,
+                            scaled(1 << 16));
+        glue_node neg_baseline_glue
+          = skip_glue(-state->eqtb()[BASELINE_SKIP_CODE].scaled / 2);
+        glue_node baseline_glue
+          = skip_glue(state->eqtb()[BASELINE_SKIP_CODE].scaled / 2);
+        render.append(RenderNode::new_glue(neg_baseline_glue));
+        render.append(rule);
+        render.append(RenderNode::new_glue(baseline_glue));
+        state->builder().build_page(state);
+        break;
+      }
+      case M(VMODE, SKIP_CODE): {
+        begin_paragraph(state, false);
+        break;
+      }
+      case M(HMODE, SKIP_CODE): {
+        input->consume_token(state, token);
+        RenderNode *skip_node
+        = RenderNode::new_glue(*(glue_node*)(token.cs->operand.ptr));
+        render.append(skip_node);
+        break;
+      }
+      case M(HMODE, PENALTY_CODE): {
+        input->consume_token(state, token);
+        render.append(RenderNode::new_penalty(token.cs->operand.i64));
         break;
       }
       case M(VMODE, CC_RBRACE):

@@ -172,7 +172,7 @@ public:
         active_width = break_width;
       } else {
         if (prev_r->type == DELTA) {
-          prev_r->d -= (cur_active_width + break_width);
+          prev_r->d = prev_r->d - cur_active_width + break_width;
         } else {
           active_node *new_delta = new active_node;
           new_delta->d = break_width - cur_active_width;
@@ -190,7 +190,7 @@ public:
       else
         minimum_demerits += abs_adj_demerits;
       for (unsigned fit = 0; fit < MAX_FITNESS; fit++) {
-        if (minimal_demerits[fit] < minimum_demerits) {
+        if (minimal_demerits[fit] <= minimum_demerits) {
           // TeX@845
           passive_node *new_passive = new passive_node;
           new_passive->break_point = cur_p;
@@ -233,29 +233,29 @@ public:
     // TeX@860
     if (r->prev == NULL) {
       // TeX@861
-      active_node *new_head = r->link;
       active.unlink(r);
-      r = new_head;
-      if (r && r->type == DELTA) {
-        active_width += r->d;
+      delete r;
+      if (active.head && active.head->type == DELTA) {
+        active_width += active.head->d;
         cur_active_width = active_width;
-        new_head = r->link;
+        r = active.head;
         active.unlink(r);
-        r = new_head;
+        delete r;
       }
-      active.head = r;
+      r = NULL;
       // End TeX@861
     } else {
-
       active_node *prev_r = r->prev;
       active.unlink(r);
       delete r;
+      active_node *prev_prev_r = prev_r->prev;
       r = prev_r->link;
       if (prev_r->type == DELTA) {
         if (!r) {
           cur_active_width -= prev_r->d;
           active.unlink(prev_r);
           delete prev_r;
+          r = prev_prev_r;
         } else if (r->type == DELTA) {
           cur_active_width += r->d;
           prev_r->d += r->d;
@@ -357,7 +357,7 @@ public:
       int32_t fewest_demerits = PENALTY_AWFUL;
       while (r) {
         if (r->type == ACTIVE) {
-          if (r->demerits <= fewest_demerits) {
+          if (r->demerits < fewest_demerits) {
             best_bet = r;
             fewest_demerits = r->demerits;
           }
@@ -464,6 +464,10 @@ public:
         else {
           if (bad > threshold) {
             deactivate_node(state, r);
+            if (!r)
+              r = active.head;
+            else
+              r = r->link;
             continue;
           }
           // deactivate, but still consider place for new node.
@@ -509,6 +513,10 @@ public:
       // end TeX@855
       if (deactivate) {
         deactivate_node(state, r);
+        if (!r)
+          r = active.head;
+        else
+          r = r->link;
         continue;
       }
 

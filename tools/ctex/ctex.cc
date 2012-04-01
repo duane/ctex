@@ -19,10 +19,26 @@
 #include <Render/TokenRender.h>
 #include <Unicode/Codecs/ASCII.h>
 
+#include <iostream>
+
 using namespace tex;
 
 int main(int argc, char **argv) {
-  
+  if (argc != 2) {
+    std::cout << "USAGE: ctex file.tex\n";
+    return 1;
+  }
+  Path in_file = Path(argv[1]);
+  if (in_file.file() == "") {
+    std::cout << "Expected input file name!\n";
+    return 1;
+  }
+  if (in_file.ext() != "tex") {
+    std::cout << "Input file must have \".tex\" extension.\n";
+    return 1;
+  }
+  Path out_file = in_file;
+  out_file.set_ext("dvi");
   UniquePtr<State> state;
   UniquePtr<TokenRender> render;
   UniquePtr<DVI> output;
@@ -30,8 +46,8 @@ int main(int argc, char **argv) {
 
   try {
     State::init(state);
-    TokenRender::init_from_file("hello.tex", codec, render);
-    DVI::init_with_file("hello.dvi", output);
+    TokenRender::init_from_file(in_file.full_path().c_str(), codec, render);
+    DVI::init_with_file(out_file.full_path().c_str(), output);
 
     render->render_input(state);
     output->render(state);

@@ -45,8 +45,12 @@ enum {
   CC_INVALID = 15,
   CC_DELIM_NUM = 15,
   
-  CC_SET_FONT,
-  EJECT_CODE,
+  CC_SET_FONT, // 16
+  EJECT_CODE, // 17
+  PAR_BEG_CODE, // 18
+  PENALTY_CODE, // 19
+  SKIP_CODE, // 20
+  RULE_CODE, // 21
 };
 
 }

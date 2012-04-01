@@ -78,6 +78,15 @@ State::State(void) {
   primitive("par", CC_PAR_END, (word){0});
   primitive("end", CC_STOP, (word){0});
   primitive("eject", EJECT_CODE, (word){0});
+  primitive("noindent", PAR_BEG_CODE, (word){0});
+  primitive("indent", PAR_BEG_CODE, (word){1});
+  primitive("break", PENALTY_CODE, (word){-10000});
+  glue_node *glue = new glue_node;
+  *glue = (glue_node){scaled(0), scaled(1), scaled(0), GLUE_FIL, GLUE_NORMAL};
+  word glue_word;
+  glue_word.ptr = (void*)glue;
+  primitive("hfil", SKIP_CODE, glue_word);
+  primitive("hrule", RULE_CODE, (word){0});
 }
 
 void State::init(UniquePtr<State> &result) {
