@@ -146,12 +146,12 @@ void TokenRender::render_input(UniquePtr<State> &state) {
         stop = true;
         break;
       }
-      case M(VMODE, CC_SET_FONT):
-      case M(HMODE, CC_SET_FONT):
-      case M(MMODE, CC_SET_FONT):
-      case M(IN_VMODE, CC_SET_FONT):
-      case M(IN_HMODE, CC_SET_FONT):
-      case M(IN_MMODE, CC_SET_FONT): {
+      case M(VMODE, SET_FONT_CODE):
+      case M(HMODE, SET_FONT_CODE):
+      case M(MMODE, SET_FONT_CODE):
+      case M(IN_VMODE, SET_FONT_CODE):
+      case M(IN_HMODE, SET_FONT_CODE):
+      case M(IN_MMODE, SET_FONT_CODE): {
         input->consume_token(state, token);
         state->eqtb()[FONT_CODE].u64 = token.cs->operand.i64;
         break;

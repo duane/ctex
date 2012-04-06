@@ -26,7 +26,6 @@
 #include <State/CommandSequence.h>
 #include <State/EQTB.h>
 #include <State/RenderState.h>
-#include <tex/codes.h>
 #include <Type/Font.h>
 #include <Unicode/Unicode.h>
 #include <Util/HashMap.h>

@@ -103,6 +103,6 @@ uint32_t State::load_font(const char *file, const char *name, int32_t at) {
   path.set_file(file);
   path.set_ext("tfm");
   TFM::load_font(path.full_path().c_str(), font, at);
-  primitive(name, CC_SET_FONT, (word){f});
+  primitive(name, SET_FONT_CODE, (word){f});
   return f;
 }
