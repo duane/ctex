@@ -4,11 +4,12 @@ The project is organized into several "libraries", which are not meant to be loa
 
 Here is what is currently implemented:
 
-+ Basic text, without ligatures, extensions, or kerning programs.
++ Fairly complete non-math typesetting, with ligatures and kerning support.
 
-+ Incorrect line breaking.
++ Correct line breaking without hyphenation.
 
-+ Extremely basic dvi writing.
++ Simple page breaking.
+
 
 However, I am hopefully laying the base for code to be written in the future, so that when I have time to devote to the project beyond my academic commitments, features can progress rapidly.
 
