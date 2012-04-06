@@ -18,6 +18,8 @@
 #include <Render/RenderNode.h>
 #include <State/State.h>
 
+#include <iostream>
+
 using namespace tex;
 
 RenderNode *tex::hpack(UniquePtr<State> &state,
@@ -118,12 +120,17 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
       hbox.order = ord;
       hbox.sign = SIGN_SHRINK;
       hbox.g_ratio = (float)(-shortfall.i64)/total_shrink[ord].i64;
-      if (hbox.order == GLUE_NORMAL && hbox.g_ratio > 1.0) {
-        hbox.g_ratio = 0.0;
-        RenderNode *underfull_rule
+      if (hbox.order == GLUE_NORMAL
+          && (-shortfall.i64) > total_shrink[GLUE_NORMAL].i64) {
+        hbox.g_ratio = 1.0;
+        RenderNode *overfull_rule
           = RenderNode::new_rule(scaled(5<<16), hbox.height);
-        prev_p->link = underfull_rule;
-        hbox.width += underfull_rule->rule.width;
+        prev_p->link = overfull_rule;
+        hbox.width += overfull_rule->rule.width;
+        std::cout << "Overfull box, exceeds line by"
+                  << scaled(-shortfall.i64 - total_shrink[GLUE_NORMAL].i64)
+                      .string()
+                  << "pt.\n";
       }
       return result_node;
     }
@@ -147,12 +154,16 @@ RenderNode *tex::hpack(UniquePtr<State> &state,
       hbox.order = ord;
       hbox.sign = SIGN_STRETCH;
       hbox.g_ratio = (float)shortfall.i64/total_stretch[ord].i64;
-      if (hbox.order == GLUE_NORMAL && hbox.g_ratio > 1.0) {
-        hbox.g_ratio = 0.0;
+      if (hbox.order == GLUE_NORMAL
+          && shortfall > total_stretch[GLUE_NORMAL]) {
+        hbox.g_ratio = 1.0;
         RenderNode *underfull_rule
           = RenderNode::new_rule(scaled(5<<16), hbox.height);
         prev_p->link = underfull_rule;
         hbox.width += underfull_rule->rule.width;
+        std::cout << "Underfull box, "
+                  << (shortfall - total_stretch[GLUE_NORMAL]).string()
+                  << "pt short of line.\n";
       }
       return result_node;
     }
