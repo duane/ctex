@@ -18,7 +18,6 @@
 #define __INCLUDE_IO_CODECINPUTSTREAM_H__
 
 #include <Diag/Diag.h>
-#include <IO/CodecInputStream.h>
 #include <Unicode/Codec.h>
 #include <Util/ByteBuffer.h>
 
@@ -29,7 +28,8 @@ private:
   // Disallow copy constructor/copy assignment
   CodecInputStream(const CodecInputStream&);
   CodecInputStream & operator=(const CodecInputStream &);
-  CodecInputStream() : buf(), index(0), codec(NULL), peeked(false), cur_line(0), cur_col(0), stream_name(NULL) {}
+  CodecInputStream() : buf(), index(0), codec(NULL), peeked(false), cur_line(0), cur_col(0),
+                       stream_name(NULL) {}
   
   UniquePtr<ByteBuffer> buf;
   size_t index;
@@ -76,7 +76,8 @@ public:
    * @param result Where the resulting CodecInputStream is stored.
    * @return NULL on success, pointer to diagnostic on failure.
    */
-  static void init_from_file(const char *path, const Codec *codec, UniquePtr<CodecInputStream> &result);
+  static void init_from_file(const char *path, const Codec *codec,
+                             UniquePtr<CodecInputStream> &result);
 };
 }  // namespace tex
 

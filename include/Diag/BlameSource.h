@@ -45,7 +45,8 @@ public:
    * @param colStart The starting column.
    * @param colEnd The ending column; must be greater than or equal to colStart.
    */
-  BlameSource(const char *input, uint32_t lineStart, uint32_t lineEnd, uint32_t colStart, uint32_t colEnd);
+  BlameSource(const char *input, uint32_t lineStart, uint32_t lineEnd, uint32_t colStart,
+              uint32_t colEnd);
 
   /** Returns a formatted string in the format of "name:line[-line]:col[-col]" */
   char *string() const {

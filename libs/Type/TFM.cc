@@ -134,7 +134,7 @@ void TFM::init_from_file(const char *path, UniquePtr<TFM> &result) {
   if ((lf < 6))
     throw new GenericDiag("TFM file not large enough to hold header.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
 
-  if ((lf * 4) != stream->size())
+  if ((unsigned)(lf * 4) != stream->size())
     throw new GenericDiag("TFM file incorrect size.", DIAG_TFM_PARSE_ERR, BLAME_HERE);
   
   if    (stream->read_uint16(lh)

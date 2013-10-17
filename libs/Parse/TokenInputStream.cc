@@ -16,7 +16,6 @@
 
 #include <IO/CodecOutputStream.h>
 #include <Parse/TokenInputStream.h>
-#include <Unicode/Codecs/ASCII.h>
 
 using namespace tex;
 

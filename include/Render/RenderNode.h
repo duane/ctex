@@ -116,8 +116,7 @@ public:
     return node;
   }
 
-  static RenderNode *new_lig(uint32_t code, uint32_t font, RenderNode *inner)
-  {
+  static RenderNode *new_lig(uint32_t code, uint32_t font, RenderNode *inner) {
     RenderNode *node = new RenderNode;
     node->type = LIG_NODE;
     node->lig = (lig_node){code, font, inner};

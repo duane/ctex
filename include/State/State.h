@@ -38,14 +38,6 @@ namespace tex {
 /** The default hash table size used to store CommandSequences. */
 const uint32_t CS_TABLE_SIZE = 4098;
 
-/** A helper datastructure forming the core of the hash table. */
-struct CommandSequenceEntry {
-  /** The stored CommandSequence. */
-  CommandSequence cs;
-  /** A pointer to the next entry in the bucket's linked list. */
-  CommandSequenceEntry *next;
-};
-
 typedef EQTB<MAX_INTERNAL_CODE> tex_eqtb;
 
 /** The kernel of the tex runtime.

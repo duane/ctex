@@ -48,7 +48,8 @@ public:
    *  @param result Where the resulting CodecOutputStream is stored.
    *  @return NULL on success, non-NULL diagnostic on failure.
    */
-  static Diag *init_with_file(const char *path, const Codec *codec, UniquePtr<CodecOutputStream> &result);
+  static Diag *init_with_file(const char *path, const Codec *codec,
+                              UniquePtr<CodecOutputStream> &result);
   
   /**
    * Writes a single character to the stream.

@@ -35,7 +35,9 @@ enum {
 };
 
 /** Diag is the base Diagnostic class.
- * Diag is never intented to be initialized. Instead, use one of the children classes: GenericDiag for regular diagnostics, BlameSourceDiag for diagnostics which can be "blamed" on another text file. Usually used for parsing.
+ * Diag is never intented to be initialized. Instead, use one of the children classes:
+ * GenericDiag for regular diagnostics, BlameSourceDiag for diagnostics which can be "blamed"
+ * on another text file. Usually used for parsing.
  */
 class Diag {
 public:
@@ -49,7 +51,8 @@ public:
    */
   virtual int errno() const = 0;
   /**
-   * Prints the diagnostic to standard out; May print a different string than the one returned by string().
+   * Prints the diagnostic to standard out;
+   * May print a different string than the one returned by string().
    */
   virtual void print() = 0;
   
